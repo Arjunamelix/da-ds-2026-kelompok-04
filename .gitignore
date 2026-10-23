@@ -1,0 +1,10 @@
+﻿.env
+node_modules/
+dist/
+__pycache__/
+.venv/
+*.pyc
+data/dev/
+data/processed/
+backend/server.exe
+.DS_Store
