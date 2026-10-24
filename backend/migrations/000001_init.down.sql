@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS deret_dilewati;
+DROP TABLE IF EXISTS evaluasi_status;
+DROP TABLE IF EXISTS evaluasi_model;
+DROP TABLE IF EXISTS status_harga;
+DROP TABLE IF EXISTS prediksi;
+DROP TABLE IF EXISTS meta;
+DROP TABLE IF EXISTS harga;
