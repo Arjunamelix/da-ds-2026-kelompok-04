@@ -1,0 +1,11 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+pandas>=2.2,<3
+numpy>=1.26,<3
+scikit-learn>=1.5,<2
+SQLAlchemy>=2.0,<3
+psycopg2-binary>=2.9,<3
+
+# pengujian
+pytest>=8,<9
+httpx>=0.27,<1
