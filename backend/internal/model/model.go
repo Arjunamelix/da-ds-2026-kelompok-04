@@ -167,4 +167,5 @@ type BarisPerbandingan struct {
 	SelisihPct  *float64 `json:"selisih_pct_vs_kota"`
 	TanpaData   bool     `json:"tanpa_data"`
 	Keterangan  string   `json:"keterangan"`
+	JumlahPasar int      `json:"jumlah_pasar"`
 }

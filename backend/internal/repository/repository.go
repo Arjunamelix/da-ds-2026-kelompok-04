@@ -44,9 +44,7 @@ func isUnique(err error) bool {
 	return errors.As(err, &pe) && pe.Code == "23505"
 }
 
-// ---------------------------------------------------------------------------
-// harga: CRUD
-// ---------------------------------------------------------------------------
+
 
 const kolomHarga = `id, tanggal::text, kecamatan, nama_pasar, komoditas, harga, sumber, satuan, tingkat_wilayah, interpolasi, dibuat_pada`
 
@@ -204,12 +202,6 @@ func (r *Repo) Export(ctx context.Context, f model.FilterHarga, fn func(model.Ha
 	return rows.Err()
 }
 
-// ---------------------------------------------------------------------------
-// impor massal
-// ---------------------------------------------------------------------------
-
-// ImportBatch menyisipkan baris lewat tabel sementara (COPY) lalu INSERT ... ON CONFLICT DO NOTHING.
-// Mengembalikan id baris yang benar-benar baru; baris yang sudah ada dilewati.
 func (r *Repo) ImportBatch(ctx context.Context, tx pgx.Tx, rows []model.BarisValid) ([]int64, error) {
 	if len(rows) == 0 {
 		return nil, nil
@@ -246,8 +238,6 @@ func (r *Repo) ImportBatch(ctx context.Context, tx pgx.Tx, rows []model.BarisVal
 	return ids, res.Err()
 }
 
-// PeringatanLonjakan mencari baris (dari id yang diberikan) yang harganya berubah > 50% dari data sebelumnya.
-// Mengembalikan maksimal 50 baris dan total yang cocok.
 func (r *Repo) PeringatanLonjakan(ctx context.Context, q DBTX, ids []int64) ([]model.Peringatan, int, error) {
 	if len(ids) == 0 {
 		return nil, 0, nil
@@ -278,10 +268,6 @@ func (r *Repo) PeringatanLonjakan(ctx context.Context, q DBTX, ids []int64) ([]m
 	}
 	return out, total, rows.Err()
 }
-
-// ---------------------------------------------------------------------------
-// meta
-// ---------------------------------------------------------------------------
 
 func (r *Repo) NaikkanVersiData(ctx context.Context, q DBTX) (int64, error) {
 	var v int64
@@ -337,10 +323,6 @@ func (r *Repo) GetMetaStatus(ctx context.Context) (model.MetaStatus, error) {
 	}, rows.Err()
 }
 
-// ---------------------------------------------------------------------------
-// analitik (fitur 1, 2, 3)
-// ---------------------------------------------------------------------------
-
 // TitikTerakhir harga terbaru satu komoditas pada satu deret beserta harga ~7 hari sebelumnya.
 type TitikTerakhir struct {
 	Komoditas string
@@ -349,15 +331,16 @@ type TitikTerakhir struct {
 	Harga7H   *int
 }
 
+// Analitik membaca view harga_agregat (pasar + rata-rata kecamatan + median kota); CRUD tetap ke tabel harga.
 func (r *Repo) TerakhirPerKomoditas(ctx context.Context, kec, pasar, sumber string) ([]TitikTerakhir, error) {
 	rows, err := r.pool.Query(ctx, `
 		WITH last AS (
 			SELECT DISTINCT ON (komoditas) komoditas, tanggal, harga
-			FROM harga WHERE kecamatan=$1 AND nama_pasar=$2 AND sumber=$3
+			FROM harga_agregat WHERE kecamatan=$1 AND nama_pasar=$2 AND sumber=$3
 			ORDER BY komoditas, tanggal DESC
 		)
 		SELECT l.komoditas, l.tanggal::text, l.harga,
-		  (SELECT h2.harga FROM harga h2
+		  (SELECT h2.harga FROM harga_agregat h2
 		    WHERE h2.kecamatan=$1 AND h2.nama_pasar=$2 AND h2.sumber=$3 AND h2.komoditas=l.komoditas
 		      AND h2.tanggal <= l.tanggal - 7
 		    ORDER BY h2.tanggal DESC LIMIT 1) AS harga_7h
@@ -378,7 +361,7 @@ func (r *Repo) TerakhirPerKomoditas(ctx context.Context, kec, pasar, sumber stri
 }
 
 func (r *Repo) Tren(ctx context.Context, kec, pasar, komoditas, sumber string, dari, sampai *time.Time) ([]model.Titik, error) {
-	rows, err := r.pool.Query(ctx, `SELECT tanggal::text, harga FROM harga
+	rows, err := r.pool.Query(ctx, `SELECT tanggal::text, harga FROM harga_agregat
 		WHERE kecamatan=$1 AND nama_pasar=$2 AND komoditas=$3 AND sumber=$4
 		  AND ($5::date IS NULL OR tanggal >= $5::date) AND ($6::date IS NULL OR tanggal <= $6::date)
 		ORDER BY tanggal`, kec, pasar, komoditas, sumber, dari, sampai)
@@ -409,7 +392,7 @@ type HargaDeret struct {
 func (r *Repo) TerakhirBanyakDeret(ctx context.Context, komoditas string, sampai *time.Time, kec, pasar, sumber []string) ([]HargaDeret, error) {
 	rows, err := r.pool.Query(ctx, `
 		SELECT DISTINCT ON (kecamatan, nama_pasar, sumber) kecamatan, nama_pasar, sumber, tanggal::text, harga
-		FROM harga
+		FROM harga_agregat
 		WHERE komoditas=$1 AND ($2::date IS NULL OR tanggal <= $2::date)
 		  AND (kecamatan, nama_pasar, sumber) IN (SELECT k, p, s FROM unnest($3::text[], $4::text[], $5::text[]) AS t(k, p, s))
 		ORDER BY kecamatan, nama_pasar, sumber, tanggal DESC`, komoditas, sampai, kec, pasar, sumber)

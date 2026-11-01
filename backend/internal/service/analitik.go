@@ -173,7 +173,7 @@ func (s *Service) Perbandingan(ctx context.Context, komoditas string, sampai *ti
 	var rata float64
 	var sumber string
 	if kh, ada := harga[kunci{kotaSeri.Kecamatan, kotaSeri.NamaPasar, kotaSeri.Sumber}]; ada {
-		rata, sumber = float64(kh.h), "harga level Kota Medan ("+kotaSeri.Sumber+")"
+		rata, sumber = float64(kh.h), "median harga pasar se-Kota Medan ("+kotaSeri.Sumber+")"
 	}
 	var jumlah float64
 	var n int
@@ -181,12 +181,15 @@ func (s *Service) Perbandingan(ctx context.Context, komoditas string, sampai *ti
 		b := model.BarisPerbandingan{Kecamatan: kec}
 		a, ok := s.ref.AcuanKecamatan(kec)
 		if !ok {
-			b.TanpaData, b.Keterangan = true, "belum dipetakan ke pasar acuan"
+			b.TanpaData, b.Keterangan = true, "tidak ada data pasar di sumber (SIMPANG)"
 			out = append(out, b)
 			continue
 		}
 		b.PasarAcuan, b.Sumber, b.LangsungAda = a.NamaPasar, a.Sumber, a.Kecamatan == kec
-		if !b.LangsungAda {
+		b.JumlahPasar = s.ref.JumlahPasar(kec)
+		if a.NamaPasar == s.ref.Kota.NamaPasar {
+			b.Keterangan = fmt.Sprintf("rata-rata %d pasar", b.JumlahPasar)
+		} else if !b.LangsungAda {
 			b.Keterangan = "mengacu pada " + a.NamaPasar
 		}
 		if h, ada := harga[kunci{a.Kecamatan, a.NamaPasar, a.Sumber}]; ada {

@@ -48,10 +48,6 @@ func Load() Config {
 // IsDev true bila sumber DEV (data sintetis) boleh dipakai.
 func (c Config) IsDev() bool { return c.AppEnv != "prod" }
 
-// ---------------------------------------------------------------------------
-// Referensi (config/referensi.json)
-// ---------------------------------------------------------------------------
-
 type KomoditasRef struct {
 	Kode     string `json:"kode"`
 	Nama     string `json:"nama"`
@@ -190,11 +186,23 @@ func (r *Referensi) SumberValid(kode string, dev bool) bool {
 	return !s.DevSaja || dev
 }
 
-// Acuan mengembalikan deret yang dipakai untuk menampilkan sebuah kecamatan (opsi B).
-// Untuk "KOTA MEDAN" hasilnya deret level kota. ok=false bila kecamatan belum punya pemetaan.
+// JumlahPasar banyaknya pasar terpantau di sebuah kecamatan (0 bila tidak ada data pasar).
+func (r *Referensi) JumlahPasar(kecamatan string) int {
+	n := 0
+	for _, p := range r.Pasar {
+		if p.Kecamatan == kecamatan {
+			n++
+		}
+	}
+	return n
+}
+
 func (r *Referensi) AcuanKecamatan(kecamatan string) (Seri, bool) {
 	if kecamatan == r.Kota.Kecamatan {
 		return Seri{Kecamatan: r.Kota.Kecamatan, NamaPasar: r.Kota.NamaPasar, Sumber: r.SumberUtamaKota}, true
+	}
+	if r.JumlahPasar(kecamatan) > 0 {
+		return Seri{Kecamatan: kecamatan, NamaPasar: r.Kota.NamaPasar, Sumber: r.SumberUtamaKota}, true
 	}
 	a, ok := r.PemetaanKecamatan[kecamatan]
 	if !ok {

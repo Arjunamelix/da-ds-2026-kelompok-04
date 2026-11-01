@@ -72,9 +72,6 @@ func (h *Handler) Router() http.Handler {
 	return r
 }
 
-// ---------------------------------------------------------------------------
-// util
-// ---------------------------------------------------------------------------
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -154,9 +151,6 @@ func decodeInput(r *http.Request) (model.HargaInput, error) {
 	return in, nil
 }
 
-// ---------------------------------------------------------------------------
-// data
-// ---------------------------------------------------------------------------
 
 func (h *Handler) listHarga(w http.ResponseWriter, r *http.Request) {
 	f, err := parseFilter(r)
@@ -277,10 +271,6 @@ func (h *Handler) templateImpor(w http.ResponseWriter, _ *http.Request) {
 	_ = cw.Tulis(model.Harga{Tanggal: "2026-10-20", Kecamatan: ref.Kota.Kecamatan, NamaPasar: ref.Kota.NamaPasar, Komoditas: "beras_medium", Harga: 14000, Sumber: sumber})
 	_ = cw.Selesai()
 }
-
-// ---------------------------------------------------------------------------
-// analitik dan hasil model
-// ---------------------------------------------------------------------------
 
 func (h *Handler) kecamatanQuery(r *http.Request) string {
 	if k := strings.TrimSpace(r.URL.Query().Get("kecamatan")); k != "" {

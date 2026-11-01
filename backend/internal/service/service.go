@@ -101,9 +101,6 @@ func (s *Service) Validasi(in model.HargaInput) (model.BarisValid, []string) {
 	return model.BarisValid{Input: in, Tanggal: tgl, Satuan: kom.Satuan}, nil
 }
 
-// ---------------------------------------------------------------------------
-// Tulis data
-// ---------------------------------------------------------------------------
 
 // HasilTulis balasan operasi CRUD.
 type HasilTulis struct {
@@ -260,9 +257,6 @@ func uniqKunci(in []model.KunciDeret) []model.KunciDeret {
 	return out
 }
 
-// ---------------------------------------------------------------------------
-// Impor CSV (idempotent)
-// ---------------------------------------------------------------------------
 
 type GalatBaris struct {
 	Baris int    `json:"baris"`
@@ -378,9 +372,6 @@ func (s *Service) Impor(ctx context.Context, r io.Reader) (*HasilImpor, error) {
 	return res, nil
 }
 
-// ---------------------------------------------------------------------------
-// Pemicu pelatihan ulang (asinkron)
-// ---------------------------------------------------------------------------
 
 // Latih memicu pelatihan ulang manual (tombol "Latih ulang").
 func (s *Service) Latih(ctx context.Context) (int64, error) {

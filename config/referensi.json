@@ -1,0 +1,188 @@
+{
+  "_catatan": "Disesuaikan dengan data SIMPANG (data_harian_simpang_medan.csv). 21 pasar di 13 kecamatan; 8 kecamatan tidak punya pasar di SIMPANG dan ditampilkan sebagai 'tidak ada data' (tanpa pemetaan tebakan). Level kecamatan = rata-rata harga pasar; level kota = median harga pasar (view harga_agregat). Jenis beras dan minyak goreng pada sumber tidak tertulis: diasumsikan medium dan curah (konfirmasi tim).",
+  "status_konfigurasi": "simpang-v1",
+  "kota": {
+    "kecamatan": "KOTA MEDAN",
+    "nama_pasar": "SEMUA"
+  },
+  "sumber_utama_kota": "SIMPANG",
+  "sumber": [
+    {
+      "kode": "PIHPS",
+      "nama": "PIHPS Bank Indonesia",
+      "dev_saja": false
+    },
+    {
+      "kode": "SIMPANG",
+      "nama": "SIMPANG Pemko Medan",
+      "dev_saja": false
+    },
+    {
+      "kode": "BADANPANGAN",
+      "nama": "Panel Harga Badan Pangan",
+      "dev_saja": false
+    },
+    {
+      "kode": "SP2KP",
+      "nama": "SP2KP Kemendag",
+      "dev_saja": false
+    },
+    {
+      "kode": "DEV",
+      "nama": "Data sintetis pengembangan",
+      "dev_saja": true
+    }
+  ],
+  "kecamatan": [
+    "Medan Amplas",
+    "Medan Area",
+    "Medan Barat",
+    "Medan Baru",
+    "Medan Belawan",
+    "Medan Deli",
+    "Medan Denai",
+    "Medan Helvetia",
+    "Medan Johor",
+    "Medan Kota",
+    "Medan Labuhan",
+    "Medan Maimun",
+    "Medan Marelan",
+    "Medan Perjuangan",
+    "Medan Petisah",
+    "Medan Polonia",
+    "Medan Selayang",
+    "Medan Sunggal",
+    "Medan Tembung",
+    "Medan Timur",
+    "Medan Tuntungan"
+  ],
+  "komoditas": [
+    {
+      "kode": "beras_medium",
+      "nama": "Beras Medium",
+      "satuan": "kg",
+      "min": 8000,
+      "max": 30000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "bawang_merah",
+      "nama": "Bawang Merah",
+      "satuan": "kg",
+      "min": 10000,
+      "max": 100000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "bawang_putih",
+      "nama": "Bawang Putih",
+      "satuan": "kg",
+      "min": 10000,
+      "max": 80000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "minyak_goreng_curah",
+      "nama": "Minyak Goreng Curah",
+      "satuan": "liter",
+      "min": 8000,
+      "max": 40000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "daging_sapi",
+      "nama": "Daging Sapi",
+      "satuan": "kg",
+      "min": 80000,
+      "max": 200000,
+      "kelompok": "tambahan"
+    }
+  ],
+  "pasar": [
+    {
+      "nama": "Pasar Bakti",
+      "kecamatan": "Medan Area"
+    },
+    {
+      "nama": "Pasar Sukaramai",
+      "kecamatan": "Medan Area"
+    },
+    {
+      "nama": "Pasar Medan Deli",
+      "kecamatan": "Medan Barat"
+    },
+    {
+      "nama": "Pasar Belawan",
+      "kecamatan": "Medan Belawan"
+    },
+    {
+      "nama": "Pasar Titipapan",
+      "kecamatan": "Medan Deli"
+    },
+    {
+      "nama": "Pasar Helvetia",
+      "kecamatan": "Medan Helvetia"
+    },
+    {
+      "nama": "Pasar Sei Kambing",
+      "kecamatan": "Medan Helvetia"
+    },
+    {
+      "nama": "Pasar Kwala Bekala",
+      "kecamatan": "Medan Johor"
+    },
+    {
+      "nama": "Pasar Titi Kuning",
+      "kecamatan": "Medan Johor"
+    },
+    {
+      "nama": "Pasar Kemiri / sp.limun",
+      "kecamatan": "Medan Kota"
+    },
+    {
+      "nama": "Pasar Sambas",
+      "kecamatan": "Medan Kota"
+    },
+    {
+      "nama": "Pusat Pasar",
+      "kecamatan": "Medan Kota"
+    },
+    {
+      "nama": "Pasar Marelan",
+      "kecamatan": "Medan Marelan"
+    },
+    {
+      "nama": "Pasar Pendidikan",
+      "kecamatan": "Medan Perjuangan"
+    },
+    {
+      "nama": "Pasar Sentosa Baru",
+      "kecamatan": "Medan Perjuangan"
+    },
+    {
+      "nama": "Pasar Petisah",
+      "kecamatan": "Medan Petisah"
+    },
+    {
+      "nama": "Pasar Padang Bulan",
+      "kecamatan": "Medan Selayang"
+    },
+    {
+      "nama": "Pasar Kp.Lalang",
+      "kecamatan": "Medan Sunggal"
+    },
+    {
+      "nama": "Pasar Sunggal",
+      "kecamatan": "Medan Sunggal"
+    },
+    {
+      "nama": "Pasar Induk",
+      "kecamatan": "Medan Tuntungan"
+    },
+    {
+      "nama": "Pasar Simalingkar",
+      "kecamatan": "Medan Tuntungan"
+    }
+  ],
+  "pemetaan_kecamatan": {}
+}
