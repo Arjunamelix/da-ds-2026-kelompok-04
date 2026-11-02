@@ -54,8 +54,25 @@ def set_meta(eng: Engine, **kv: str) -> None:
             )
 
 
+def _seragam(baris: list[dict], versi_data: int, **bawaan) -> list[dict]:
+    """Samakan kunci setiap baris sebelum INSERT banyak baris sekaligus.
+
+    SQLAlchemy mewajibkan semua baris punya parameter yang sama. Baris dari jalur berbeda di pipeline
+    bisa kehilangan kunci (mis. versi_data), jadi versi_data selalu diisi dari pemanggil dan kunci
+    opsional diberi nilai bawaan.
+    """
+    return [{**bawaan, **b, "versi_data": versi_data} for b in baris]
+
+
 def tulis_hasil(eng: Engine, hasil: dict, versi_data: int) -> None:
     """Ganti seluruh tabel hasil dalam satu transaksi, supaya pembaca selalu melihat satu versi yang utuh."""
+    hasil = {
+        "prediksi": _seragam(hasil.get("prediksi") or [], versi_data),
+        "status": _seragam(hasil.get("status") or [], versi_data),
+        "evaluasi": _seragam(hasil.get("evaluasi") or [], versi_data),
+        "evaluasi_status": _seragam(hasil.get("evaluasi_status") or [], versi_data),
+        "dilewati": _seragam(hasil.get("dilewati") or [], versi_data, n_hari=None, alasan=""),
+    }
     with eng.begin() as c:
         for t in ("prediksi", "status_harga", "evaluasi_model", "evaluasi_status", "deret_dilewati"):
             c.execute(text(f"DELETE FROM {t}"))

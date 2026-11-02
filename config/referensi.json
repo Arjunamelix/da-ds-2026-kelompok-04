@@ -1,6 +1,6 @@
 {
-  "_catatan": "Disesuaikan dengan data SIMPANG (data_harian_simpang_medan.csv). 21 pasar di 13 kecamatan; 8 kecamatan tidak punya pasar di SIMPANG dan ditampilkan sebagai 'tidak ada data' (tanpa pemetaan tebakan). Level kecamatan = rata-rata harga pasar; level kota = median harga pasar (view harga_agregat). Jenis beras dan minyak goreng pada sumber tidak tertulis: diasumsikan medium dan curah (konfirmasi tim).",
-  "status_konfigurasi": "simpang-v1",
+  "_catatan": "Disesuaikan dengan data SIMPANG dan SP2KP (data/raw/master_data_harian.csv, diolah scripts/etl_master.py). SIMPANG: 21 pasar di 13 kecamatan, 12 komoditas (minyak goreng tercatat 'Minyak Goreng Kuning Curah' di SIMPANG; telur = Telur Ras id 27, harga per butir sebelum Feb 2025 ditolak). SP2KP: garam halus dan susu bubuk di Pasar Sukaramai dan Pusat Pasar. 8 kecamatan tidak punya pasar dan ditampilkan sebagai 'tidak ada data' (tanpa pemetaan tebakan). Level kecamatan = rata-rata harga pasar; level kota = median harga pasar, minimal 3 pasar (view harga_agregat). Asumsi yang perlu dikonfirmasi tim: beras = medium, susu bubuk = kemasan 400 g.",
+  "status_konfigurasi": "simpang-sp2kp-v3",
   "kota": {
     "kecamatan": "KOTA MEDAN",
     "nama_pasar": "SEMUA"
@@ -95,6 +95,78 @@
       "satuan": "kg",
       "min": 80000,
       "max": 200000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "gula_pasir",
+      "nama": "Gula Pasir",
+      "satuan": "kg",
+      "min": 10000,
+      "max": 30000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "garam_halus",
+      "nama": "Garam Halus",
+      "satuan": "kg",
+      "min": 3000,
+      "max": 20000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "susu_bubuk",
+      "nama": "Susu Bubuk",
+      "satuan": "400 g",
+      "min": 30000,
+      "max": 100000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "telur_ayam_ras",
+      "nama": "Telur Ayam Ras",
+      "satuan": "kg",
+      "min": 15000,
+      "max": 50000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "cabai_merah",
+      "nama": "Cabai Merah",
+      "satuan": "kg",
+      "min": 10000,
+      "max": 150000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "cabai_rawit",
+      "nama": "Cabai Rawit",
+      "satuan": "kg",
+      "min": 10000,
+      "max": 150000,
+      "kelompok": "inti"
+    },
+    {
+      "kode": "daging_ayam_ras",
+      "nama": "Daging Ayam Ras",
+      "satuan": "kg",
+      "min": 20000,
+      "max": 60000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "jagung",
+      "nama": "Jagung",
+      "satuan": "kg",
+      "min": 4000,
+      "max": 20000,
+      "kelompok": "tambahan"
+    },
+    {
+      "kode": "kedelai",
+      "nama": "Kedelai",
+      "satuan": "kg",
+      "min": 8000,
+      "max": 30000,
       "kelompok": "tambahan"
     }
   ],
