@@ -4,8 +4,8 @@ Dashboard web dinamis untuk **Data Analitik** dan **Data Science**: memantau tre
 membandingkan antar kecamatan, memprediksi harga 7 dan 14 hari ke depan, dan memberi status harga
 (Normal / Waspada / Lonjakan). Saat data baru ditambahkan, grafik, prediksi, dan status ikut diperbarui otomatis.
 
-- **Sumber data:** SIMPANG Pemko Medan (hasil scraping tim), 2 Januari 2024 sampai 15 Oktober 2026
-- **Cakupan:** 21 kecamatan Kota Medan (13 punya data, 8 tampil "tidak ada data"), 5 komoditas
+- **Sumber data:** SIMPANG Pemko Medan dan SP2KP Kemendag (hasil scraping tim), 2 Januari 2024 sampai 15 Oktober 2026
+- **Cakupan:** 21 kecamatan Kota Medan (13 punya data, 8 tampil "tidak ada data"), 14 komoditas
 
 ---
 
@@ -37,7 +37,7 @@ Peramban  →  frontend (React, nginx)  →  backend (Go)  →  db (PostgreSQL)
 | `frontend` | React + Vite, disajikan nginx | Halaman dashboard | http://localhost:3000 |
 | `backend` | Go (chi, pgx) | API, validasi, impor/ekspor CSV, memicu pelatihan ulang | http://localhost:8080/api |
 | `ml` | Python (FastAPI, scikit-learn) | Melatih model dan menghitung prediksi dan status | hanya di dalam Docker |
-| `db` | PostgreSQL 16 | Menyimpan data harga dan hasil model | `localhost:5432` |
+| `db` | PostgreSQL 16 | Menyimpan data harga dan hasil model | `localhost:5432` (bisa diganti lewat `POSTGRES_HOST_PORT` di `.env`) |
 
 Tabel di database dibuat otomatis oleh backend saat pertama kali menyala. Kamu tidak perlu membuat database sendiri.
 
@@ -89,6 +89,8 @@ nano .env
 Isi `POSTGRES_PASSWORD=` dengan password bebas. **Pakai huruf, angka, dan garis bawah saja.** Karakter seperti `@ : / # %` merusak alamat
 koneksi database. Nilai lain boleh dibiarkan seperti bawaan.
 
+Kalau saat langkah 3 muncul galat port 5432 sudah dipakai (sering di Windows), tambahkan `POSTGRES_HOST_PORT=5440` di `.env`.
+
 ### Langkah 3. Nyalakan semua layanan
 
 Pastikan Docker Desktop sudah berjalan, lalu:
@@ -112,45 +114,66 @@ curl http://localhost:8080/api/health
 ```
 (Di PowerShell: `Invoke-RestMethod http://localhost:8080/api/health`.) Hasilnya harus `{"status":"ok"}`.
 
-### Langkah 5. Olah data mentah SIMPANG
+### Langkah 5. Olah data mentah
 
-Data mentah sudah ada di repo (`data/raw/simpang/data_harian_simpang_medan.csv`). Ubah ke format impor:
+Data mentah gabungan SIMPANG dan SP2KP sudah ada di repo: `data/raw/master_data_harian.csv`. Ubah ke format impor:
 
 ```bash
 pip install pandas
-python scripts/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
+python scripts/etl_master.py
 ```
 
-(Di macOS/Linux, pakai `python3`.) Angka yang **harus** muncul:
+(Di macOS/Linux, pakai `python3`. Tanpa argumen, skrip otomatis membaca `data/raw/master_data_harian.csv`
+dan menulis ke `data/processed/`. Bisa juga dijalankan dengan tombol **Run** di VS Code.) Angka yang **harus** muncul:
 
 | Keterangan | Jumlah |
 |---|---|
-| Baris mentah | 106.995 |
-| Dibuang (harga 0 = tidak ada data hari itu) | 47.463 |
-| Ditolak (di luar batas wajar atau menyimpang ekstrem) | 210 |
-| **Diimpor** | **59.322** |
+| Baris mentah | 260.864 |
+| Dibuang (harga 0 = tidak ada data hari itu) | 122.160 |
+| Ditolak: telur dilaporkan per butir, bukan per kg | 3.763 |
+| Ditolak: menyimpang > 40% dari median pasar lain hari itu | 1.600 |
+| Ditolak: di luar batas wajar | 123 |
+| **Baris valid** | **133.218** |
 
-Hasilnya ditulis ke `data/processed/harga_harian_simpang.csv`, dan baris yang ditolak ke `data/processed/simpang_ditolak.csv`.
+Hasilnya tiga berkas di `data/processed/`:
+- `harga_harian_simpang.csv` (131.976 baris)
+- `harga_harian_sp2kp.csv` (1.242 baris)
+- `master_ditolak.csv` (baris yang dibuang beserta alasannya)
 
 ### Langkah 6. Impor data ke database
 
+Impor kedua berkas (urutannya bebas):
+
 ```bash
 python scripts/impor_csv.py data/processed/harga_harian_simpang.csv
+python scripts/impor_csv.py data/processed/harga_harian_sp2kp.csv
 ```
 
-Yang harus muncul: `baru disimpan 59322 | dilewati (sudah ada) 0 | tidak valid 0`.
+Yang harus muncul pada database kosong:
+- SIMPANG: `baru disimpan 131976 | dilewati (sudah ada) 0 | tidak valid 0`
+- SP2KP: `baru disimpan 1242 | dilewati (sudah ada) 0 | tidak valid 0`
+
+Peringatan "baris berubah harga > 50% (tetap disimpan)" itu wajar: kebanyakan cabai dan bawang merah, yang harganya memang bergejolak.
 Perintah ini **aman diulang**: pada percobaan kedua hasilnya `baru disimpan 0`, tanpa duplikat.
 
 ### Langkah 7. Tunggu model selesai dilatih
 
-Begitu data masuk, model dilatih otomatis di belakang layar (sekitar 40 detik sampai 1 menit). Pantau:
+Begitu data masuk, model dilatih otomatis di belakang layar. Dengan 14 komoditas, prosesnya butuh **beberapa menit**. Pantau:
 
 ```bash
 curl http://localhost:8080/api/status-hitung
 docker compose logs ml --tail 10
 ```
 
-Tunggu `status_hitung` menjadi `idle`. Di log ML akan ada baris `selesai: 140 prediksi, 70 status, 0 dilewati`.
+(Di PowerShell: `Invoke-RestMethod http://localhost:8080/api/status-hitung`.)
+
+Tunggu sampai `status_hitung` menjadi `idle` dan `versi_model` sama dengan `versi_data`. Beberapa deret memang dilewati
+karena datanya kurang (misalnya jagung di Medan Area dan kedelai di Medan Selayang); itu tercatat di tabel `deret_dilewati`, bukan galat.
+Kalau `status_hitung` bernilai `error`, baca isi `pesan_hitung` dan log ML, lalu picu ulang setelah diperbaiki:
+
+```bash
+curl -X POST http://localhost:8080/api/retrain
+```
 
 ### Langkah 8. Buka dashboard
 
@@ -162,10 +185,11 @@ Selesai.
 > ```bash
 > docker compose up --build -d
 > pip install pandas
-> python scripts/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
+> python scripts/etl_master.py
 > python scripts/impor_csv.py data/processed/harga_harian_simpang.csv
+> python scripts/impor_csv.py data/processed/harga_harian_sp2kp.csv
 > ```
-> lalu buka http://localhost:3000.
+> lalu tunggu model selesai dan buka http://localhost:3000.
 
 ---
 
@@ -182,8 +206,10 @@ Selesai.
 Cara kerja angka di dashboard:
 - Harga **kecamatan** = rata-rata harga semua pasar di kecamatan itu pada hari itu.
 - Harga **Kota Medan** = median harga semua pasar pada hari itu (minimal 3 pasar melapor).
-- **8 kecamatan tampil "tidak ada data"** (Medan Amplas, Baru, Denai, Labuhan, Maimun, Polonia, Tembung, Timur). Itu benar: sumber SIMPANG tidak
+- **8 kecamatan tampil "tidak ada data"** (Medan Amplas, Baru, Denai, Labuhan, Maimun, Polonia, Tembung, Timur). Itu benar: sumber data tidak
   punya pasar di sana. Tidak ada angka yang ditebak.
+- **Garam halus dan susu bubuk** (SP2KP) hanya ada di 2 pasar, jadi tidak punya angka Kota Medan (butuh minimal 3 pasar).
+  Pilih kecamatan **Medan Area** atau **Medan Kota** untuk melihatnya.
 
 Untuk mencoba sifat dinamisnya: buka **Kelola Data**, tambahkan satu data harga, lalu lihat kartu prediksi berubah setelah model dihitung ulang
 (status "sedang menghitung ulang" tampil sebentar).
@@ -192,13 +218,35 @@ Untuk mencoba sifat dinamisnya: buka **Kelola Data**, tambahkan satu data harga,
 
 ## 5. Tentang data
 
-- **Sumber:** SIMPANG Pemko Medan, hasil scraping tim: 106.995 baris, 21 pasar di 13 kecamatan, 5 komoditas, harian sejak 1 Januari 2024.
-- **Komoditas:** Beras Medium, Bawang Merah, Bawang Putih, Minyak Goreng Curah, Daging Sapi. (Jenis beras dan minyak goreng masih berupa asumsi yang perlu dikonfirmasi tim.)
+- **Sumber:** hasil scraping tim, digabung dalam satu berkas mentah `data/raw/master_data_harian.csv` (260.864 baris, kolom `sumber` membedakan asalnya):
+  - **SIMPANG Pemko Medan:** 21 pasar di 13 kecamatan, 12 komoditas, harian sejak 1 Januari 2024.
+  - **SP2KP Kemendag:** Pasar Sukaramai dan Pusat Pasar, 2 komoditas.
+- **Komoditas (14):**
+
+  | Sumber | Komoditas |
+  |---|---|
+  | SIMPANG | Beras Medium, Bawang Merah, Bawang Putih, Cabai Merah, Cabai Rawit, Minyak Goreng Curah, Gula Pasir, Daging Sapi, Daging Ayam Ras, Telur Ayam Ras, Jagung, Kedelai |
+  | SP2KP | Garam Halus, Susu Bubuk |
+
+- **Satu deret tidak pernah dicampur dari dua sumber.** Kolom `sumber` ikut disimpan di setiap baris.
 - **Format impor** (6 kolom, boleh urutan bebas): `tanggal, kecamatan, nama_pasar, komoditas, harga, sumber`. Contoh ada di `data/template_import.csv`.
-- **Aturan pembersihan** (`scripts/etl_simpang.py`): harga 0 dianggap tidak ada data dan dibuang; harga di luar batas wajar komoditas ditolak; harga yang menyimpang lebih dari 40% dari median pasar lain pada hari itu (bila minimal 5 pasar melapor) ditolak sebagai dugaan salah input.
+- **Aturan pembersihan** (`scripts/etl_master.py`), berurutan:
+  1. Nama komoditas, sumber, dan pasar dibakukan (mis. `pusat pasar` di SP2KP menjadi `Pusat Pasar`).
+  2. Komoditas yang isinya salinan persis komoditas lain dibuang otomatis (pernah terjadi: telur hasil scraping lama identik dengan daging sapi).
+  3. Harga 0 dianggap tidak ada data dan dibuang.
+  4. Harga telur yang dilaporkan **per butir** (SIMPANG, Januari 2024 sampai Januari 2025) ditolak, tidak dikonversi; deret telur dimulai Februari 2025.
+  5. Harga di luar batas wajar komoditas (`config/referensi.json`) ditolak.
+  6. Harga yang menyimpang lebih dari 40% dari median pasar lain pada hari, komoditas, dan sumber yang sama (bila minimal 5 pasar melapor) ditolak sebagai dugaan salah input.
 - **Hanya data asli per pasar** yang disimpan di tabel `harga`. Rata-rata kecamatan dan median kota dihitung otomatis oleh view `harga_agregat`.
-- **Batasan:** data SIMPANG hanya terisi sekitar 616 dari 1.018 hari kalender (ada lubang, terutama Mei sampai Juli 2024); 8 dari 21 kecamatan tidak punya data; ada kemungkinan anomali pada bawang merah 6 September 2024 yang masih diperiksa.
-- **Model:** pada data ini model boosting belum mengalahkan baseline naif (harga hari ini dianggap berlaku 7 atau 14 hari lagi). Ini temuan yang dilaporkan jujur, bukan galat. Rinciannya di [`Project.md`](Project.md) bagian 11.5.
+- **Batasan:**
+  - Ada lubang data, terutama Mei sampai Juli 2024.
+  - 8 dari 21 kecamatan tidak punya data.
+  - Sebagian pasar melaporkan harga jagung jauh di atas pasar lain (kemungkinan jenis jagung berbeda).
+  - Beberapa deret berhenti melapor sebelum Oktober 2026 (garam dan susu di Pasar Sukaramai, kedelai di Medan Area).
+  - Jenis beras (medium) dan satuan susu bubuk (kemasan 400 g) masih berupa asumsi yang perlu dikonfirmasi tim.
+  - Ada kemungkinan anomali pada bawang merah 6 September 2024 yang masih diperiksa.
+- **Model:** pada data 5 komoditas awal, model boosting belum mengalahkan baseline naif (harga hari ini dianggap berlaku 7 atau 14 hari lagi).
+  Ini temuan yang dilaporkan jujur, bukan galat. Hasil pada 14 komoditas sedang dievaluasi; rinciannya di [`Project.md`](Project.md).
 
 Data sintetis untuk uji (`python scripts/gen_data_dev.py`) hanya untuk menguji aplikasi dan **tidak boleh dipakai di laporan**.
 
@@ -222,13 +270,15 @@ Dasi_Dalis_04/
 ├── ml/                        Python FastAPI
 │   ├── app/{main,pipeline,fitur,model,evaluasi,status,kalender,db,config}.py
 │   └── tests/
-├── config/referensi.json      21 kecamatan, 21 pasar, 5 komoditas, batas harga (dibaca Go dan Python)
+├── config/referensi.json      21 kecamatan, 21 pasar, 14 komoditas, batas harga (dibaca Go dan Python)
 ├── data/
-│   ├── raw/simpang/           data mentah SIMPANG (hanya ditambah)
-│   ├── processed/             hasil ETL (dibuat ulang lewat skrip)
+│   ├── raw/
+│   │   ├── master_data_harian.csv   data mentah gabungan SIMPANG + SP2KP (dipakai ETL)
+│   │   └── simpang/                 data mentah SIMPANG awal, 5 komoditas (arsip)
+│   ├── processed/             hasil ETL, dibuat ulang lewat skrip (diabaikan git)
 │   ├── dev/                   data sintetis uji (diabaikan git)
 │   └── template_import.csv
-├── scripts/                   etl_simpang.py, impor_csv.py, gen_data_dev.py
+├── scripts/                   etl_master.py (ETL utama), impor_csv.py, etl_simpang.py (lama), gen_data_dev.py
 └── docs/                      PANDUAN_SETUP.md, kontrak_api.md, alur_data_dev.md, hasil_cek_sumber.md, logbook.md, laporan/
 ```
 
