@@ -156,16 +156,23 @@ type KartuRingkasan struct {
 	Keterangan           string   `json:"keterangan"`
 }
 
+// DetailPasar rincian harga di satu pasar dalam kecamatan.
+type DetailPasar struct {
+	NamaPasar string `json:"nama_pasar"`
+	Harga     int    `json:"harga"`
+}
+
 // BarisPerbandingan satu kecamatan pada halaman perbandingan.
 type BarisPerbandingan struct {
-	Kecamatan   string   `json:"kecamatan"`
-	PasarAcuan  string   `json:"pasar_acuan"`
-	Sumber      string   `json:"sumber"`
-	LangsungAda bool     `json:"pasar_sendiri"`
-	TanggalData string   `json:"tanggal_data"`
-	Harga       *int     `json:"harga"`
-	SelisihPct  *float64 `json:"selisih_pct_vs_kota"`
-	TanpaData   bool     `json:"tanpa_data"`
-	Keterangan  string   `json:"keterangan"`
-	JumlahPasar int      `json:"jumlah_pasar"`
+	Kecamatan   string        `json:"kecamatan"`
+	PasarAcuan  string        `json:"pasar_acuan"`
+	Sumber      string        `json:"sumber"`
+	LangsungAda bool          `json:"pasar_sendiri"`
+	TanggalData string        `json:"tanggal_data"`
+	Harga       *int          `json:"harga"`
+	SelisihPct  *float64      `json:"selisih_pct_vs_kota"`
+	TanpaData   bool          `json:"tanpa_data"`
+	Keterangan  string        `json:"keterangan"`
+	JumlahPasar int           `json:"jumlah_pasar"`
+	DetailPasar []DetailPasar `json:"detail_pasar,omitempty"`
 }

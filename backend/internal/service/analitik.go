@@ -149,6 +149,12 @@ func (s *Service) Perbandingan(ctx context.Context, komoditas string, sampai *ti
 	}
 	kotaSeri, _ := s.ref.AcuanKecamatan(s.ref.Kota.Kecamatan)
 	need[kunci{kotaSeri.Kecamatan, kotaSeri.NamaPasar, kotaSeri.Sumber}] = true
+	for _, psr := range s.ref.Pasar {
+		need[kunci{psr.Kecamatan, psr.Nama, s.ref.SumberUtamaKota}] = true
+		if a, ok := s.ref.AcuanKecamatan(psr.Kecamatan); ok {
+			need[kunci{psr.Kecamatan, psr.Nama, a.Sumber}] = true
+		}
+	}
 
 	var ks, ps, ss []string
 	for k := range need {
@@ -186,14 +192,34 @@ func (s *Service) Perbandingan(ctx context.Context, komoditas string, sampai *ti
 			continue
 		}
 		b.PasarAcuan, b.Sumber, b.LangsungAda = a.NamaPasar, a.Sumber, a.Kecamatan == kec
-		b.JumlahPasar = s.ref.JumlahPasar(kec)
-		if a.NamaPasar == s.ref.Kota.NamaPasar {
-			b.Keterangan = fmt.Sprintf("rata-rata %d pasar", b.JumlahPasar)
-		} else if !b.LangsungAda {
-			b.Keterangan = "mengacu pada " + a.NamaPasar
+		
+		detail := []model.DetailPasar{}
+		var sumH int
+		var latestTgl string
+		for _, psr := range s.ref.Pasar {
+			if psr.Kecamatan == kec {
+				if h, ada := harga[kunci{psr.Kecamatan, psr.Nama, a.Sumber}]; ada {
+					detail = append(detail, model.DetailPasar{NamaPasar: psr.Nama, Harga: h.h})
+					sumH += h.h
+					if latestTgl == "" || h.tgl > latestTgl {
+						latestTgl = h.tgl
+					}
+				}
+			}
 		}
-		if h, ada := harga[kunci{a.Kecamatan, a.NamaPasar, a.Sumber}]; ada {
+		b.JumlahPasar = len(detail)
+		b.DetailPasar = detail
+
+		if len(detail) > 0 {
+			avgH := sumH / len(detail)
+			b.Harga, b.TanggalData = ptrI(avgH), latestTgl
+			b.Keterangan = fmt.Sprintf("rata-rata %d pasar", len(detail))
+			jumlah += float64(avgH)
+			n++
+		} else if h, ada := harga[kunci{a.Kecamatan, a.NamaPasar, a.Sumber}]; ada {
 			b.Harga, b.TanggalData = ptrI(h.h), h.tgl
+			b.DetailPasar = []model.DetailPasar{{NamaPasar: a.NamaPasar, Harga: h.h}}
+			b.JumlahPasar = 1
 			jumlah += float64(h.h)
 			n++
 		} else {

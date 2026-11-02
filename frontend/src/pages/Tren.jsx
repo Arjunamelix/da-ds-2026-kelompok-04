@@ -4,6 +4,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, X
 import { api } from '../api/client.js'
 import { useApp } from '../AppContext.jsx'
 import { Galat, Kosong, Memuat, PilihKomoditas } from '../components/Umum.jsx'
+import PetaMedan from '../components/PetaMedan.jsx'
 import { gabungSeri, labelTick, potongTerakhir, rupiah, tanggalID } from '../lib/format.js'
 
 const WARNA = ['#2a78d6', '#eb6834', '#1baf7a'] // maksimal 3 seri (Project.md 6.6)
@@ -23,6 +24,7 @@ export default function Tren() {
   const kecamatan = dipilih.length ? dipilih : [ref.kota.kecamatan]
   const [rentang, setRentang] = useState(90)
   const [data, setData] = useState(null)
+  const [dataPerbandingan, setDataPerbandingan] = useState(null)
   const [galat, setGalat] = useState(null)
 
   const set = (k, v) => {
@@ -53,6 +55,17 @@ export default function Tren() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [komoditas, kecamatan.join('|'), versiModel])
+
+  useEffect(() => {
+    let batal = false
+    api
+      .perbandingan({ komoditas })
+      .then((d) => !batal && setDataPerbandingan(d))
+      .catch(() => {})
+    return () => {
+      batal = true
+    }
+  }, [komoditas, versiModel])
 
   const baris = useMemo(() => (data ? potongTerakhir(gabungSeri(data.seri), rentang) : []), [data, rentang])
   const adaData = data && data.seri.some((s) => s.titik.length > 0)
@@ -138,6 +151,14 @@ export default function Tren() {
           </ul>
         </div>
       )}
+
+      {/* Peta Sebaran Harga Komoditas 21 Kecamatan Kota Medan */}
+      <PetaMedan
+        dataPerbandingan={dataPerbandingan}
+        namaKomoditas={data?.nama || ref.komoditas.find((k) => k.kode === komoditas)?.nama || komoditas}
+        kecamatanTerpilih={kecamatan}
+        onPilihKecamatan={toggleKec}
+      />
     </>
   )
 }

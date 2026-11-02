@@ -152,3 +152,198 @@ tr.redup td { color: var(--redup); }
 .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: putar .8s linear infinite; }
 @keyframes putar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } .kartu { transition: none; } }
+
+/* --- Peta Medan & Tooltip --- */
+.peta-wrapper {
+  background: var(--kartu);
+  border: 1px solid var(--garis);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+.peta-kepala h3 {
+  margin: 0 0 0.3rem 0;
+  font-size: 1.2rem;
+}
+.peta-subjudul {
+  margin: 0 0 1.2rem 0;
+  color: var(--redup);
+  font-size: 0.85rem;
+}
+.peta-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: color-mix(in srgb, var(--garis) 15%, transparent);
+  border-radius: var(--radius);
+  padding: 1rem;
+  min-height: 480px;
+}
+.peta-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  max-height: 600px;
+}
+.peta-wilayah:hover path {
+  filter: brightness(1.18) drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+}
+.peta-tooltip-card {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  width: 230px;
+  background: #0f141c;
+  color: #f8fafc;
+  border-radius: 10px;
+  border-top: 1px solid #1e293b;
+  border-bottom: 1px solid #1e293b;
+  border-left: 3.5px solid #f59e0b;
+  border-right: 3.5px solid #3b82f6;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+  font-family: inherit;
+  transition: top 0.05s ease-out, left 0.05s ease-out;
+}
+.tooltip-title {
+  color: #38bdf8;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.tooltip-commodity {
+  color: #f8fafc;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin: 0.35rem 0 0.65rem 0;
+}
+.tooltip-price-group {
+  margin-bottom: 0.5rem;
+}
+.tooltip-price-label {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.tooltip-price-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 0.1rem;
+}
+.tooltip-status-badge {
+  font-size: 0.78rem;
+  font-style: italic;
+  font-weight: 500;
+  margin-top: 0.15rem;
+}
+.tooltip-market-count {
+  font-size: 0.84rem;
+  color: #e2e8f0;
+  margin-top: 0.4rem;
+}
+.tooltip-kosong {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+.tooltip-divider {
+  border: 0;
+  border-top: 1px solid #334155;
+  margin: 0.55rem 0;
+}
+.tooltip-detail-header {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.tooltip-market-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+.tooltip-market-list li {
+  padding: 0.12rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+.tooltip-market-list li span {
+  font-weight: 600;
+  color: #f8fafc;
+}
+.peta-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--garis);
+  font-size: 0.82rem;
+}
+.legend-label {
+  font-weight: 600;
+  color: var(--redup);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.legend-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.peta-btn-reset {
+  background: var(--latar);
+  border: 1px solid var(--garis);
+  color: var(--teks);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.peta-btn-reset:hover {
+  background: var(--kartu);
+  border-color: var(--primer);
+  color: var(--primer);
+}
+.peta-loading-overlay,
+.peta-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  border-radius: inherit;
+}
+.peta-error-overlay {
+  color: #f87171;
+  text-align: center;
+  padding: 1.5rem;
+}
+.peta-marker-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9);
+  pointer-events: none !important;
+  user-select: none !important;
+}
