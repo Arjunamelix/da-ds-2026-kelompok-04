@@ -1,0 +1,18 @@
+DROP TRIGGER IF EXISTS harga_ke_warehouse_tambah ON harga;
+DROP TRIGGER IF EXISTS harga_ke_warehouse_ubah ON harga;
+DROP TRIGGER IF EXISTS harga_ke_warehouse_hapus ON harga;
+DROP TRIGGER IF EXISTS harga_ke_warehouse_kosongkan ON harga;
+DROP FUNCTION IF EXISTS trg_warehouse_tambah();
+DROP FUNCTION IF EXISTS trg_warehouse_ubah();
+DROP FUNCTION IF EXISTS trg_warehouse_hapus();
+DROP FUNCTION IF EXISTS trg_warehouse_kosongkan();
+DROP FUNCTION IF EXISTS muat_warehouse(TEXT[]);
+DROP FUNCTION IF EXISTS isi_dim_waktu(DATE, DATE);
+DROP VIEW IF EXISTS v_dataset_harga;
+DROP TABLE IF EXISTS fakta_harga;
+DROP TABLE IF EXISTS dim_sumber;
+DROP TABLE IF EXISTS dim_komoditas;
+DROP TABLE IF EXISTS dim_wilayah;
+DROP TABLE IF EXISTS dim_waktu;
+DROP TABLE IF EXISTS ref_hari_besar;
+DELETE FROM meta WHERE kunci = 'warehouse_dimuat';
