@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useApp } from '../AppContext.jsx'
 import { Galat, KeteranganAcuan, Kosong, Memuat, PilihKecamatan, StatusBadge } from '../components/Umum.jsx'
+import PanelKPI from '../components/viz/PanelKPI.jsx'
 import { persen, rupiah, tanggalID } from '../lib/format.js'
 
 function Kartu({ k, kecamatan }) {
@@ -57,6 +58,7 @@ export default function Dashboard() {
   const kecamatan = params.get('kecamatan') || ref.kota.kecamatan
   const [data, setData] = useState(null)
   const [galat, setGalat] = useState(null)
+  const levelKota = kecamatan === ref.kota.kecamatan
 
   useEffect(() => {
     let batal = false
@@ -78,6 +80,8 @@ export default function Dashboard() {
         <h1>Ringkasan harga</h1>
         <PilihKecamatan nilai={kecamatan} onChange={ubah} referensi={ref} />
       </div>
+      {/* KPI level kota (data warehouse); hanya tampil di level Kota Medan agar tidak tertukar dengan kartu kecamatan */}
+      {levelKota && <PanelKPI tampilGrafik={false} />}
       {data && (
         <KeteranganAcuan
           kecamatan={kecamatan}
@@ -90,7 +94,7 @@ export default function Dashboard() {
       )}
       <Galat pesan={galat?.message} detail={galat?.detail} />
       {!data && !galat && <Memuat />}
-      {data?.tanpa_data && <Kosong>Tidak ada data pasar untuk kecamatan ini di SIMPANG (belum ada pasar terpantau atau datanya kosong).</Kosong>}
+      {data?.tanpa_data && <Kosong>Tidak ada data pasar untuk kecamatan ini di sumber data (belum ada pasar terpantau atau datanya kosong).</Kosong>}
       {data && !data.tanpa_data && data.kartu.length === 0 && (
         <Kosong>
           Belum ada data harga untuk deret ini. Impor CSV lewat halaman <Link to="/kelola">Kelola Data</Link>.
@@ -101,6 +105,12 @@ export default function Dashboard() {
         Status memakai perubahan harga 7 hari ke depan yang diprediksi model, dibandingkan dengan ambang tiap komoditas.
         Klik kartu untuk melihat tren.
       </p>
+      {/* grafik batang perubahan 7 hari per komoditas (bagian dari PanelKPI), di bawah kartu */}
+      {levelKota && (
+        <div style={{ marginTop: 16 }}>
+          <PanelKPI tampilKartu={false} />
+        </div>
+      )}
     </>
   )
 }

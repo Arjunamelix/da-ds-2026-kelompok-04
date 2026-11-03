@@ -57,6 +57,8 @@ export default function Layout() {
             <NavLink to="/" end>Dashboard</NavLink>
             <NavLink to="/tren">Tren</NavLink>
             <NavLink to="/perbandingan">Perbandingan</NavLink>
+            <NavLink to="/analisis">Analisis</NavLink>
+            <NavLink to="/cerita">Cerita</NavLink>
             <NavLink to="/prediksi">Prediksi</NavLink>
             <NavLink to="/kelola">Kelola Data</NavLink>
           </nav>
@@ -81,7 +83,7 @@ export default function Layout() {
         )}
       </main>
       <footer className="kaki">
-        Sumber data: PIHPS BI, SIMPANG Pemko Medan, Badan Pangan, SP2KP. Prediksi bersifat estimasi statistik, bukan jaminan harga.
+        Sumber data: SIMPANG Pemko Medan dan SP2KP Kemendag (hasil scraping tim). Prediksi bersifat estimasi statistik, bukan jaminan harga.
       </footer>
     </div>
   )

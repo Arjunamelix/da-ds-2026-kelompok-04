@@ -69,4 +69,15 @@ export const api = {
   },
   urlEkspor: (f) => BASE + '/harga/export' + qs(f),
   urlTemplate: () => BASE + '/harga/template',
+
+  // Analitik dari data warehouse (backend/internal/handler/analitik_wh.go)
+  analitik: {
+    kpi: () => req('/analitik/kpi'),
+    heatmap: ({ dari, sampai } = {}) => req('/analitik/heatmap' + qs({ dari, sampai })),
+    mingguan: ({ dari, sampai } = {}) => req('/analitik/mingguan' + qs({ dari, sampai })),
+    sebaran: ({ komoditas, kecamatan, dari, sampai }) => req('/analitik/sebaran' + qs({ komoditas, kecamatan, dari, sampai })),
+    wilayah: ({ komoditas, dari, sampai } = {}) => req('/analitik/wilayah' + qs({ komoditas, dari, sampai })),
+    deret: ({ komoditas, kecamatan, dari, sampai }) => req('/analitik/deret' + qs({ komoditas, kecamatan, dari, sampai })),
+    statistik: ({ dari, sampai } = {}) => req('/analitik/statistik' + qs({ dari, sampai })),
+  },
 }

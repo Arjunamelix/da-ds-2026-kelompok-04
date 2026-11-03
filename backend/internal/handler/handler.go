@@ -68,10 +68,12 @@ func (h *Handler) Router() http.Handler {
 		r.Get("/versi-data", h.versiData)
 		r.Get("/status-hitung", h.statusHitung)
 		r.Post("/retrain", h.retrain)
+
+		// Analitik dari data warehouse (halaman Analisis, Cerita, kartu KPI): analitik_wh.go
+		h.rutAnalitik(r)
 	})
 	return r
 }
-
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -150,7 +152,6 @@ func decodeInput(r *http.Request) (model.HargaInput, error) {
 	}
 	return in, nil
 }
-
 
 func (h *Handler) listHarga(w http.ResponseWriter, r *http.Request) {
 	f, err := parseFilter(r)

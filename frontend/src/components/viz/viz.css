@@ -1,0 +1,94 @@
+/* Gaya visual analitik (halaman Analisis, Cerita, kartu KPI). Memakai variabel tema aplikasi bila ada. */
+
+.vz-panel { position: relative; }
+.vz-panel h2 { margin-bottom: 4px; }
+.vz-sub { margin: 0 0 12px; color: var(--redup, #6b7280); font-size: 0.9rem; }
+.vz-gulir { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* filter global */
+.vz-filter {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+  padding: 12px 14px; margin-bottom: 16px;
+  background: var(--latar-panel, #ffffff); border: 1px solid var(--garis, #e5e7eb); border-radius: 10px;
+}
+.vz-filter .field { margin: 0; }
+.vz-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  background: #eef4fc; color: #1d4f8f; font-size: 0.85rem; border: 1px solid #cfe0f6;
+}
+.vz-chip button { border: 0; background: none; cursor: pointer; font-size: 1rem; line-height: 1; color: inherit; padding: 0; }
+.vz-filter-ket { flex-basis: 100%; margin: 0; font-size: 0.82rem; color: var(--redup, #6b7280); }
+
+/* kartu KPI */
+.vz-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.vz-kpi-kartu {
+  padding: 14px 16px; border: 1px solid var(--garis, #e5e7eb); border-radius: 10px; background: var(--latar-panel, #ffffff);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.vz-kpi-judul { font-size: 0.85rem; color: var(--redup, #6b7280); }
+.vz-kpi-nilai { font-size: 1.7rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.vz-kpi-nilai small { font-size: 0.85rem; font-weight: 500; color: var(--redup, #6b7280); margin-left: 4px; }
+.vz-kpi-banding { font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.vz-kpi-ket { font-size: 0.78rem; color: var(--redup, #6b7280); }
+
+/* heatmap */
+.vz-heat { display: grid; gap: 2px; font-size: 0.75rem; min-width: max-content; }
+.vz-heat-kepala { color: var(--redup, #6b7280); text-align: center; white-space: nowrap; padding-bottom: 2px; }
+.vz-heat-kepala.tegak { writing-mode: vertical-rl; transform: rotate(180deg); text-align: left; justify-self: center; padding: 0 0 4px; max-height: 130px; overflow: hidden; text-overflow: ellipsis; }
+.vz-heat-baris {
+  text-align: right; padding-right: 8px; white-space: nowrap; display: flex; align-items: center; justify-content: flex-end;
+  background: none; border: 0; font: inherit; color: inherit; cursor: pointer;
+}
+.vz-heat-baris.aktif { font-weight: 700; }
+.vz-sel {
+  height: 24px; border: 0; border-radius: 3px; padding: 0; cursor: pointer; font: inherit; font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+.vz-sel:focus-visible, .vz-heat-baris:focus-visible { outline: 2px solid #1d4f8f; outline-offset: 1px; }
+.vz-sel.aktif { box-shadow: inset 0 0 0 2px #111827; }
+.vz-sel.kosong { background: repeating-linear-gradient(45deg, #f3f4f6, #f3f4f6 3px, #e5e7eb 3px, #e5e7eb 5px); cursor: default; }
+
+.vz-legenda { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--redup, #6b7280); margin-top: 8px; flex-wrap: wrap; }
+.vz-legenda-gradien { width: 160px; height: 10px; border-radius: 3px; }
+.vz-legenda-kotak { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: -2px; margin-right: 4px; }
+
+/* tooltip mengambang */
+.vz-tooltip {
+  position: fixed; z-index: 50; pointer-events: none; max-width: 280px;
+  background: #111827; color: #f9fafb; padding: 8px 10px; border-radius: 6px; font-size: 0.8rem; line-height: 1.4;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+.vz-tooltip strong { display: block; margin-bottom: 2px; }
+
+/* small multiples */
+.vz-sm { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.vz-sm-kartu {
+  text-align: left; border: 1px solid var(--garis, #e5e7eb); border-radius: 8px; padding: 8px 10px 4px; background: var(--latar-panel, #fff);
+  cursor: pointer; font: inherit; color: inherit;
+}
+.vz-sm-kartu.aktif { border-color: #2a78d6; box-shadow: 0 0 0 2px #2a78d633; }
+.vz-sm-kepala { display: flex; justify-content: space-between; gap: 6px; font-size: 0.82rem; }
+.vz-sm-kepala strong { font-size: 0.86rem; }
+
+/* treemap dan box plot */
+.vz-remah { display: flex; gap: 6px; align-items: center; font-size: 0.88rem; margin-bottom: 8px; flex-wrap: wrap; }
+.vz-remah button { border: 0; background: none; color: #1d4f8f; cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+.vz-svg { display: block; width: 100%; height: auto; }
+.vz-svg text { font-family: inherit; }
+.vz-svg .vz-klik { cursor: pointer; }
+.vz-svg .vz-klik:focus-visible { outline: 2px solid #1d4f8f; }
+
+/* cerita */
+.vz-cerita { display: grid; gap: 18px; }
+.vz-temuan { border-left: 4px solid #2a78d6; }
+.vz-temuan-no { font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--redup, #6b7280); }
+.vz-temuan h2 { font-size: 1.15rem; line-height: 1.35; }
+.vz-artinya { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+.vz-artinya div { background: #f6f8fb; border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; line-height: 1.45; }
+.vz-artinya strong { display: block; margin-bottom: 2px; font-size: 0.8rem; color: var(--redup, #4b5563); }
+
+@media (max-width: 640px) {
+  .vz-filter { position: static; }
+  .vz-kpi-nilai { font-size: 1.4rem; }
+}

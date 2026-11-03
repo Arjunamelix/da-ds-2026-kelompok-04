@@ -6,7 +6,8 @@ import Tren from './pages/Tren.jsx'
 import Perbandingan from './pages/Perbandingan.jsx'
 import Prediksi from './pages/Prediksi.jsx'
 import KelolaData from './pages/KelolaData.jsx'
-
+import Analisis from './pages/Analisis.jsx'
+import Cerita from './pages/Cerita.jsx'
 
 export default function App() {
   return (
@@ -16,6 +17,8 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="tren" element={<Tren />} />
           <Route path="perbandingan" element={<Perbandingan />} />
+          <Route path="analisis" element={<Analisis />} />
+          <Route path="cerita" element={<Cerita />} />
           <Route path="prediksi" element={<Prediksi />} />
           <Route path="kelola" element={<KelolaData />} />
           <Route path="*" element={<div className="kosong">Halaman tidak ditemukan.</div>} />
