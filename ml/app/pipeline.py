@@ -114,7 +114,7 @@ def jalankan(df: pd.DataFrame, versi_data: int) -> dict:
     for kunci, g in df.groupby(list(KUNCI), sort=True):
         n_asli = int((g["interpolasi"] == 0).sum())
         if n_asli < config.MIN_HARI:
-            dilewati.append(dict(zip(KUNCI, kunci)) | {"alasan": f"data belum cukup (butuh minimal {config.MIN_HARI} hari data asli)", "n_hari": n_asli})
+            dilewati.append(dict(zip(KUNCI, kunci)) | {"alasan": f"data belum cukup (butuh minimal {config.MIN_HARI} hari data asli)", "n_hari": n_asli, "versi_data": versi_data})
             continue
         deret[kunci] = fitur.deret_harian(g)
 

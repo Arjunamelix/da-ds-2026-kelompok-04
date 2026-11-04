@@ -8,3 +8,7 @@ data/dev/
 data/processed/
 backend/server.exe
 .DS_Store
+simpang_*.html
+simpang_*.js
+data/raw/scraper_output.csv
+logs/
