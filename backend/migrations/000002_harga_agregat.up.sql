@@ -22,4 +22,4 @@ SELECT tanggal, 'KOTA MEDAN'::text, 'SEMUA'::text, komoditas,
 FROM harga
 WHERE nama_pasar <> 'SEMUA' AND sumber <> 'DEV'
 GROUP BY tanggal, komoditas, sumber
-HAVING count(*) >= 3;
+

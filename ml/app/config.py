@@ -46,7 +46,7 @@ LATIH_MIN = _int("ML_LATIH_MIN", 30)
 PEKERJA = _int("ML_PEKERJA", min(4, os.cpu_count() or 1))
 
 # Celah maksimal (hari) yang diisi interpolasi saat membangun fitur.
-CELAH_MAKS = 14
+CELAH_MAKS = _int("ML_CELAH_MAKS", 30)
 
 # Rentang prediksi 80% (kuantil 10% dan 90% galat holdout).
 KUANTIL_BAWAH = 0.10
