@@ -254,35 +254,188 @@ Data sintetis untuk uji (`python scripts/gen_data_dev.py`) hanya untuk menguji a
 
 ## 6. Struktur proyek
 
+Gambaran besar: empat layanan aplikasi (`frontend`, `backend`, `ml`, `db`) dijalankan oleh `docker-compose.yml`;
+folder `config/`, `data/`, `scripts/`, `notebooks/`, dan `docs/` berisi referensi, data, skrip olah data, eksperimen model, dan dokumentasi.
+
+| Folder | Isi | Dipakai oleh |
+|---|---|---|
+| `frontend/` | Dashboard web (React + Vite, disajikan nginx) | layanan `frontend` |
+| `backend/` | API, validasi, impor/ekspor CSV, data warehouse, pemicu pelatihan ulang (Go) | layanan `backend` |
+| `ml/` | Pelatihan model, prediksi, status harga (Python FastAPI) | layanan `ml` |
+| `config/` | Referensi kecamatan, pasar, komoditas, dan batas harga | `backend`, `ml`, `scripts` |
+| `data/` | Data mentah, data bersih hasil ETL, data uji | `scripts`, `notebooks` |
+| `scripts/` | Skrip olah data yang dijalankan manual dari terminal | pengguna |
+| `notebooks/` | Notebook eksperimen pemodelan | pengguna (Jupyter / VS Code) |
+| `docs/` | Dokumentasi data, aplikasi, model, laporan, logbook | pengguna, dosen |
+
+### 6.1 Berkas di folder induk
+
 ```
 Dasi_Dalis_04/
-├── README.md                  dokumen ini
-├── Project.md                 keputusan, status, dan rencana kerja proyek
-├── docker-compose.yml         menjalankan db + backend + ml + frontend
-├── .env.example               contoh pengaturan (salin menjadi .env)
-├── Makefile                   pintasan perintah (macOS/Linux)
-├── frontend/                  React + Vite (dashboard)
-│   └── src/{pages,components,api,lib,__tests__}
-├── backend/                   Go (chi, pgx, golang-migrate)
-│   ├── cmd/server/main.go
-│   ├── internal/{config,handler,service,repository,csvimport,model}
-│   └── migrations/            skema PostgreSQL (tertanam di biner, berjalan otomatis)
-├── ml/                        Python FastAPI
-│   ├── app/{main,pipeline,fitur,model,evaluasi,status,kalender,db,config}.py
-│   └── tests/
-├── config/referensi.json      21 kecamatan, 21 pasar, 14 komoditas, batas harga (dibaca Go dan Python)
-├── data/
-│   ├── raw/
-│   │   ├── master_data_harian.csv   data mentah gabungan SIMPANG + SP2KP (dipakai ETL)
-│   │   └── simpang/                 data mentah SIMPANG awal, 5 komoditas (arsip)
-│   ├── processed/             hasil ETL, dibuat ulang lewat skrip (diabaikan git)
-│   ├── dev/                   data sintetis uji (diabaikan git)
-│   └── template_import.csv
-├── scripts/                   etl_master.py (ETL utama), impor_csv.py, etl_simpang.py (lama), gen_data_dev.py
-└── docs/                      PANDUAN_SETUP.md, kontrak_api.md, alur_data_dev.md, hasil_cek_sumber.md, logbook.md, laporan/
+├── README.md               panduan menjalankan proyek (dokumen ini)
+├── Project.md              keputusan, status, dan rencana kerja proyek
+├── docker-compose.yml      menjalankan db + backend + ml + frontend
+├── .env.example            contoh pengaturan; salin menjadi .env (tidak ikut di-commit)
+├── .gitignore              daftar berkas yang tidak ikut di-commit (.env, node_modules, .venv, data/processed, data/dev)
+└── Makefile                pintasan perintah (macOS/Linux)
 ```
 
----
+### 6.2 `frontend/` (dashboard)
+
+```
+frontend/
+├── Dockerfile              build React lalu sajikan dengan nginx
+├── nginx.conf              pengaturan nginx (rute halaman dan penerusan /api ke backend)
+├── .dockerignore           berkas yang tidak ikut ke image Docker (node_modules, dist)
+├── index.html              halaman HTML dasar
+├── package.json            daftar paket JavaScript dan perintah npm
+├── vite.config.js          pengaturan Vite (build dan server pengembangan)
+└── src/
+    ├── main.jsx            titik awal aplikasi React
+    ├── App.jsx             daftar rute halaman
+    ├── AppContext.jsx      data bersama: referensi, status model, pemantauan pelatihan ulang
+    ├── styles.css          gaya tampilan umum
+    ├── api/
+    │   └── client.js       semua pemanggilan API backend
+    ├── lib/
+    │   ├── format.js       format rupiah, persen, tanggal
+    │   └── format.test.js  tes format.js
+    ├── data/
+    │   └── medan_kecamatan.json   batas wilayah 21 kecamatan (GeoJSON) untuk peta
+    ├── components/
+    │   ├── Layout.jsx      kerangka halaman: judul, menu, status model, kaki halaman
+    │   ├── Umum.jsx        komponen kecil bersama (pilihan kecamatan/komoditas, badge status, pesan galat)
+    │   ├── PetaMedan.jsx   peta choropleth harga per kecamatan (Google Maps)
+    │   └── viz/            komponen visual analitik
+    │       ├── util.js              warna, format angka dan tanggal, rentang waktu
+    │       ├── useMuat.js           pemuat data dari API
+    │       ├── viz.css              gaya visual analitik
+    │       ├── Tooltip.jsx          tooltip mengikuti kursor
+    │       ├── Heatmap.jsx          peta panas (pola musiman, korelasi)
+    │       ├── BoxPlot.jsx          sebaran harga antarpasar per bulan
+    │       ├── TreemapWilayah.jsx   treemap Kota Medan > kecamatan > pasar
+    │       ├── SmallMultiples.jsx   tren mingguan per komoditas
+    │       ├── DeretBeranotasi.jsx  harga harian dengan hari besar, celah data, lonjakan
+    │       └── PanelKPI.jsx         4 kartu KPI dan grafik perubahan 7 hari
+    ├── pages/
+    │   ├── Dashboard.jsx      ringkasan harga, kartu KPI, kartu per komoditas
+    │   ├── Tren.jsx           grafik tren sampai 3 kecamatan dan peta
+    │   ├── Perbandingan.jsx   harga 21 kecamatan untuk satu komoditas
+    │   ├── Analisis.jsx       analisis mendalam dengan filter global
+    │   ├── Cerita.jsx         lima temuan utama (storytelling)
+    │   ├── Prediksi.jsx       prediksi 7 dan 14 hari, status, evaluasi model
+    │   └── KelolaData.jsx     tambah, ubah, hapus, impor, ekspor data
+    └── __tests__/
+        └── halaman.test.jsx   tes halaman
+```
+
+### 6.3 `backend/` (API Go)
+
+```
+backend/
+├── Dockerfile              build biner Go
+├── go.mod                  modul dan daftar dependensi Go
+├── go.sum                  checksum dependensi
+├── cmd/server/
+│   └── main.go             titik awal server: baca pengaturan, jalankan migrasi, nyalakan API
+├── internal/
+│   ├── config/
+│   │   ├── config.go       pengaturan dari variabel lingkungan dan referensi.json
+│   │   └── config_test.go
+│   ├── handler/
+│   │   ├── handler.go      rute dan endpoint HTTP /api
+│   │   └── analitik_wh.go  endpoint /api/analitik/* (KPI, peta panas, sebaran, wilayah, deret, statistik)
+│   ├── service/
+│   │   ├── service.go      logika tulis data, validasi, versi data, pemicu pelatihan ulang
+│   │   ├── analitik.go     ringkasan, tren, perbandingan, halaman prediksi
+│   │   └── tx.go           pembantu transaksi database
+│   ├── repository/
+│   │   ├── repository.go   query tabel harga dan tabel hasil model
+│   │   └── analitik_wh.go  query data warehouse (fakta dan dimensi)
+│   ├── csvimport/
+│   │   ├── csvimport.go    baca dan tulis CSV (impor/ekspor)
+│   │   └── csvimport_test.go
+│   └── model/
+│       └── model.go        struktur data (struct) yang dipakai antarlapisan
+└── migrations/             skema PostgreSQL, berjalan otomatis saat backend menyala
+    ├── embed.go
+    ├── 000001_init.up.sql            tabel harga, meta, dan tabel hasil model
+    ├── 000001_init.down.sql
+    ├── 000002_harga_agregat.up.sql   view harga_agregat (rata-rata kecamatan, median kota)
+    ├── 000002_harga_agregat.down.sql
+    ├── 000003_warehouse.up.sql       skema bintang: fakta_harga + 4 dimensi, ETL otomatis (trigger)
+    └── 000003_warehouse.down.sql
+```
+
+### 6.4 `ml/` (layanan model)
+
+```
+ml/
+├── Dockerfile              image Python untuk layanan ML
+├── requirements.txt        paket Python
+├── app/
+│   ├── main.py             API FastAPI: /health, /retrain, pelatihan ulang di latar belakang
+│   ├── pipeline.py         alur lengkap: baca data, fitur, latih, evaluasi, tulis hasil
+│   ├── fitur.py            deret harian dan fitur model
+│   ├── model.py            baseline naif dan model boosting
+│   ├── evaluasi.py         evaluasi walk-forward: MAE, RMSE, MAPE vs baseline
+│   ├── status.py           status Normal / Waspada / Lonjakan dan evaluasinya
+│   ├── kalender.py         daftar hari besar untuk fitur
+│   ├── db.py               baca tabel harga, tulis tabel hasil model
+│   └── config.py           pengaturan dari variabel lingkungan (ML_*)
+└── tests/
+    ├── conftest.py               data uji sintetis
+    ├── test_fitur.py
+    ├── test_evaluasi_status.py
+    └── test_pipeline_api.py
+```
+
+### 6.5 `config/`, `data/`, `scripts/`, `notebooks/`
+
+```
+config/
+└── referensi.json          21 kecamatan, 21 pasar, 14 komoditas, satuan, batas harga, sumber data
+
+data/
+├── template_import.csv     contoh format impor (6 kolom)
+├── raw/                    data mentah, tidak pernah diedit
+│   ├── master_data_harian.csv    gabungan SIMPANG + SP2KP (masukan etl_master.py)
+│   └── simpang/
+│       └── data_harian_simpang_medan.csv   data SIMPANG awal, 5 komoditas (arsip)
+├── processed/              hasil etl_master.py (tidak ikut di-commit, dibuat ulang)
+│   ├── harga_harian_simpang.csv
+│   ├── harga_harian_sp2kp.csv
+│   └── master_ditolak.csv        baris yang dibuang beserta alasannya
+└── dev/                    data sintetis untuk uji (tidak ikut di-commit, jangan dipakai di laporan)
+
+scripts/
+├── etl_master.py           ETL utama: master_data_harian.csv → data/processed/
+├── impor_csv.py            kirim CSV hasil ETL ke backend (POST /api/harga/import)
+├── laporan_kualitas.py     buat docs/kualitas_data.md (kualitas data sebelum dan sesudah)
+├── cek_akses_simpang.py    cek sekali apakah halaman SIMPANG dapat diakses
+├── etl_simpang.py          ETL lama khusus data SIMPANG 5 komoditas (arsip)
+└── gen_data_dev.py         pembuat data sintetis uji
+
+notebooks/
+└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sudah ada)
+```
+
+### 6.6 `docs/` (dokumentasi)
+
+```
+docs/
+├── PANDUAN_SETUP.md        panduan setup langkah demi langkah
+├── kontrak_api.md          daftar endpoint API dan formatnya
+├── alur_data_dev.md        alur data dari mentah sampai database
+├── hasil_cek_sumber.md     hasil pengecekan sumber data
+├── kualitas_data.md        laporan kualitas data sebelum dan sesudah pembersihan (dibuat laporan_kualitas.py)
+├── warehouse.md            skema bintang, ERD, contoh query
+├── visualisasi.md          daftar visual dan interaktivitas dashboard
+├── logbook.md              catatan kerja mingguan
+├── model/
+│   └── S1_problem_framing.md   ringkasan problem framing (S1)
+└── laporan/                laporan akhir dan bahan presentasi
+```
 
 ## 7. Menjalankan tes
 
