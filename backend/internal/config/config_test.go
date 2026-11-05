@@ -19,8 +19,8 @@ func TestReferensiSimpang(t *testing.T) {
 	if len(r.Pasar) != 21 {
 		t.Fatalf("pasar = %d, SIMPANG punya 21 pasar", len(r.Pasar))
 	}
-	if len(r.Komoditas) != 5 {
-		t.Fatalf("komoditas = %d, data SIMPANG punya 5", len(r.Komoditas))
+	if len(r.Komoditas) != 14 {
+		t.Fatalf("komoditas = %d, referensi berisi 14 (12 SIMPANG + 2 SP2KP)", len(r.Komoditas))
 	}
 	if !r.KecamatanValid("KOTA MEDAN") || !r.KecamatanValid("Medan Petisah") || r.KecamatanValid("Medan Antah") {
 		t.Fatal("KecamatanValid salah")

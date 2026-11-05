@@ -70,6 +70,12 @@ export const api = {
   urlEkspor: (f) => BASE + '/harga/export' + qs(f),
   urlTemplate: () => BASE + '/harga/template',
 
+  // Pengambilan data otomatis dari SIMPANG (layanan scraper, diteruskan backend/internal/handler/scraper.go)
+  scraper: {
+    status: () => req('/scraper/status'),
+    jalankan: () => req('/scraper/jalankan', { method: 'POST' }),
+  },
+
   // Analitik dari data warehouse (backend/internal/handler/analitik_wh.go)
   analitik: {
     kpi: () => req('/analitik/kpi'),

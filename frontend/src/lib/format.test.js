@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { rupiah, persen, tanggalID, keMs, tambahHari, gabungSeri, potongTerakhir, STATUS_IKON } from './format.js'
+import { rupiah, persen, tanggalID, waktuID, waktuSingkat, jamID, keMs, tambahHari, gabungSeri, potongTerakhir, STATUS_IKON } from './format.js'
 
 test('rupiah memakai pemisah titik', () => {
   assert.equal(rupiah(52000).replace(/\s/g, ' '), 'Rp 52.000')
@@ -39,4 +39,13 @@ test('potongTerakhir relatif ke data terakhir', () => {
 
 test('ikon status', () => {
   assert.equal(STATUS_IKON.Lonjakan, '🔴')
+})
+
+test('waktuID dan jamID membaca jam apa adanya (WIB dari scraper)', () => {
+  assert.equal(waktuID('2026-11-05T14:15:25+07:00'), '5 Nov 2026, 14.15')
+  assert.equal(waktuID('2026-11-05'), '5 Nov 2026')
+  assert.equal(waktuID(null), '-')
+  assert.equal(waktuSingkat('2026-11-05T14:15:25+07:00'), '5 Nov, 14.15')
+  assert.equal(jamID('2026-11-05T16:00+07:00'), '16.00')
+  assert.equal(jamID(''), '-')
 })

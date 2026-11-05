@@ -1,4 +1,4 @@
-# Demo lokal di laptop: PostgreSQL + backend Go + layanan ML (FastAPI) + frontend (nginx).
+# Demo lokal di laptop: PostgreSQL + backend Go + layanan ML (FastAPI) + scraper SIMPANG (FastAPI) + frontend (nginx).
 # Jalankan:  cp .env.example .env  (isi POSTGRES_PASSWORD)  lalu  docker compose up --build
 # Web di http://localhost:3000 (atau FRONTEND_HOST_PORT).
 
@@ -24,6 +24,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-pangan}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-harga_pangan}?sslmode=disable
       ML_URL: http://ml:8000
+      SCRAPER_URL: ${SCRAPER_URL:-http://scraper:8000}
       APP_ENV: ${APP_ENV:-dev}
       BACKEND_PORT: "8080"
       REFERENSI_PATH: /app/config/referensi.json
@@ -44,6 +45,27 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  # Pengambil data harga otomatis dari SIMPANG: saat menyala, lalu setiap hari pada SCRAPER_JADWAL (WIB).
+  # Menambah data baru ke data/raw/master_data_harian.csv dan ke database (lewat backend), tanpa duplikat.
+  # Tidak dibuka ke luar Docker; dashboard memakainya lewat backend (/api/scraper/...).
+  scraper:
+    build: ./scraper
+    environment:
+      BACKEND_URL: http://backend:8080
+      DATA_DIR: /data
+      SCRIPTS_DIR: /app/scripts
+      TZ: Asia/Jakarta
+      SCRAPER_AKTIF: ${SCRAPER_AKTIF:-1}
+      SCRAPER_JADWAL: ${SCRAPER_JADWAL:-10:00,16:00}
+      SCRAPER_KONTAK: ${SCRAPER_KONTAK:-}
+      SCRAPER_TULIS_MASTER: ${SCRAPER_TULIS_MASTER:-1}
+    volumes:
+      - ./data:/data
+      - ./scripts:/app/scripts:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
 
   frontend:
     build: ./frontend

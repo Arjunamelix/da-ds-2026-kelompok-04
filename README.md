@@ -4,7 +4,7 @@ Dashboard web dinamis untuk **Data Analitik** dan **Data Science**: memantau tre
 membandingkan antar kecamatan, memprediksi harga 7 dan 14 hari ke depan, dan memberi status harga
 (Normal / Waspada / Lonjakan). Saat data baru ditambahkan, grafik, prediksi, dan status ikut diperbarui otomatis.
 
-- **Sumber data:** SIMPANG Pemko Medan dan SP2KP Kemendag (hasil scraping tim), 2 Januari 2024 sampai 15 Oktober 2026
+- **Sumber data:** SIMPANG Pemko Medan dan SP2KP Kemendag, mulai 2 Januari 2024. Data SIMPANG diperbarui otomatis setiap hari oleh layanan `scraper`
 - **Cakupan:** 21 kecamatan Kota Medan (13 punya data, 8 tampil "tidak ada data"), 14 komoditas
 
 ---
@@ -24,12 +24,14 @@ membandingkan antar kecamatan, memprediksi harga 7 dan 14 hari ke depan, dan mem
 ## 1. Gambaran singkat
 
 Seluruh aplikasi berjalan di **Docker**, jadi kamu tidak perlu memasang PostgreSQL, Go, atau Node.js untuk
-menjalankannya (Python hanya dibutuhkan untuk dua skrip data, lihat bagian 2). Satu perintah menyalakan empat layanan:
+menjalankannya (Python hanya dibutuhkan untuk dua skrip data, lihat bagian 2). Satu perintah menyalakan lima layanan:
 
 ```
 Peramban  →  frontend (React, nginx)  →  backend (Go)  →  db (PostgreSQL)
-                                              ↓  setelah data berubah
-                                         ml (Python FastAPI)  →  menulis prediksi, status, evaluasi ke db
+                                            ↑   ↓  setelah data berubah
+                                            │  ml (Python FastAPI)  →  menulis prediksi, status, evaluasi ke db
+                                            │
+SIMPANG  →  scraper (Python FastAPI)  ──────┘  impor data baru, juga ditambah ke master CSV
 ```
 
 | Layanan | Teknologi | Tugas | Alamat di laptop |
@@ -37,6 +39,7 @@ Peramban  →  frontend (React, nginx)  →  backend (Go)  →  db (PostgreSQL)
 | `frontend` | React + Vite, disajikan nginx | Halaman dashboard | http://localhost:3000 |
 | `backend` | Go (chi, pgx) | API, validasi, impor/ekspor CSV, memicu pelatihan ulang | http://localhost:8080/api |
 | `ml` | Python (FastAPI, scikit-learn) | Melatih model dan menghitung prediksi dan status | hanya di dalam Docker |
+| `scraper` | Python (FastAPI, requests, pandas) | Mengambil harga harian SIMPANG secara otomatis dan menambahkannya tanpa duplikat | hanya di dalam Docker (status lewat `/api/scraper/status`) |
 | `db` | PostgreSQL 16 | Menyimpan data harga dan hasil model | `localhost:5432` (bisa diganti lewat `POSTGRES_HOST_PORT` di `.env`) |
 
 Tabel di database dibuat otomatis oleh backend saat pertama kali menyala. Kamu tidak perlu membuat database sendiri.
@@ -91,6 +94,10 @@ koneksi database. Nilai lain boleh dibiarkan seperti bawaan.
 
 Kalau saat langkah 3 muncul galat port 5432 sudah dipakai (sering di Windows), tambahkan `POSTGRES_HOST_PORT=5440` di `.env`.
 
+Pengaturan scraper di `.env` (boleh dibiarkan bawaan):
+- `SCRAPER_KONTAK=` isi email tim. Email ini dicantumkan di User-Agent sebagai identitas saat menghubungi SIMPANG.
+- `SCRAPER_TULIS_MASTER=1` hanya untuk **satu** laptop di tim (yang meng-commit master CSV). Laptop lain memakai `0` supaya `data/raw/master_data_harian.csv` tidak bentrok saat `git pull`. Lihat bagian 5.
+
 ### Langkah 3. Nyalakan semua layanan
 
 Pastikan Docker Desktop sudah berjalan, lalu:
@@ -107,7 +114,7 @@ Pertama kali butuh sekitar **5 sampai 10 menit** karena Docker mengunduh image d
 docker compose ps
 ```
 
-Empat layanan (`db`, `backend`, `ml`, `frontend`) harus berstatus **Up**, dan `db` berstatus **healthy**. Lalu cek backend:
+Lima layanan (`db`, `backend`, `ml`, `scraper`, `frontend`) harus berstatus **Up**, dan `db` berstatus **healthy**. Lalu cek backend:
 
 ```bash
 curl http://localhost:8080/api/health
@@ -124,7 +131,10 @@ python scripts/etl_master.py
 ```
 
 (Di macOS/Linux, pakai `python3`. Tanpa argumen, skrip otomatis membaca `data/raw/master_data_harian.csv`
-dan menulis ke `data/processed/`. Bisa juga dijalankan dengan tombol **Run** di VS Code.) Angka yang **harus** muncul:
+dan menulis ke `data/processed/`. Bisa juga dijalankan dengan tombol **Run** di VS Code.)
+
+Angka di bawah berasal dari master per **15 Oktober 2026**. Sejak scraper menambah data setiap hari, jumlah barisnya bertambah,
+jadi angkamu akan sedikit lebih besar. Yang penting: tidak ada galat dan baris valid bertambah sesuai data baru.
 
 | Keterangan | Jumlah |
 |---|---|
@@ -149,7 +159,7 @@ python scripts/impor_csv.py data/processed/harga_harian_simpang.csv
 python scripts/impor_csv.py data/processed/harga_harian_sp2kp.csv
 ```
 
-Yang harus muncul pada database kosong:
+Yang muncul pada database kosong (angka master per 15 Oktober 2026; sekarang lebih besar):
 - SIMPANG: `baru disimpan 131976 | dilewati (sudah ada) 0 | tidak valid 0`
 - SP2KP: `baru disimpan 1242 | dilewati (sudah ada) 0 | tidak valid 0`
 
@@ -179,7 +189,8 @@ curl -X POST http://localhost:8080/api/retrain
 
 **http://localhost:3000**
 
-Selesai.
+Selesai. Mulai sekarang data baru masuk sendiri: layanan `scraper` mengambil harga SIMPANG saat menyala dan setiap hari pukul
+10.00 dan 16.00 WIB (lihat bagian 5). Langkah 5 dan 6 hanya perlu dijalankan sekali, saat database masih kosong.
 
 > **Ringkasan cepat** (setelah `.env` dibuat dan Docker menyala):
 > ```bash
@@ -200,8 +211,12 @@ Selesai.
 | **Dashboard** | `/` | Kartu per komoditas: harga terakhir, perubahan 7 hari, prediksi 7 hari, dan status. Pilih "KOTA MEDAN" atau satu kecamatan |
 | **Tren** | `/tren` | Grafik garis harga. Pilih komoditas, sampai 3 kecamatan, dan rentang waktu |
 | **Perbandingan** | `/perbandingan` | Harga 21 kecamatan untuk satu komoditas, terurut, beserta selisih terhadap harga Kota Medan |
+| **Analisis** | `/analisis` | Analisis mendalam dari data warehouse: KPI, peta panas, sebaran antarpasar, wilayah, deret beranotasi |
+| **Cerita** | `/cerita` | Lima temuan utama dalam bentuk cerita data |
 | **Prediksi** | `/prediksi` | Prediksi 7 dan 14 hari dengan rentang 80%, status, dan evaluasi model dibanding baseline |
-| **Kelola Data** | `/kelola` | Tambah, ubah, hapus data; impor dan ekspor CSV; melihat perubahan prediksi sebelum dan sesudah |
+| **Kelola Data** | `/kelola` | Tambah, ubah, hapus data; impor dan ekspor CSV; melihat perubahan prediksi sebelum dan sesudah; tab **Pengambilan otomatis** (status scraper, tombol "Ambil data sekarang", riwayat) |
+
+Chip kecil di kanan atas menunjukkan kapan data terakhir diambil dari SIMPANG (mis. "Diambil 5 Nov, 14.43"); klik untuk membuka tab Pengambilan otomatis.
 
 Cara kerja angka di dashboard:
 - Harga **kecamatan** = rata-rata harga semua pasar di kecamatan itu pada hari itu.
@@ -218,7 +233,7 @@ Untuk mencoba sifat dinamisnya: buka **Kelola Data**, tambahkan satu data harga,
 
 ## 5. Tentang data
 
-- **Sumber:** hasil scraping tim, digabung dalam satu berkas mentah `data/raw/master_data_harian.csv` (260.864 baris, kolom `sumber` membedakan asalnya):
+- **Sumber:** digabung dalam satu berkas mentah `data/raw/master_data_harian.csv` (kolom `sumber` membedakan asalnya). Data sampai 15 Oktober 2026 hasil scraping tim (260.864 baris); sesudahnya ditambah otomatis oleh layanan `scraper`:
   - **SIMPANG Pemko Medan:** 21 pasar di 13 kecamatan, 12 komoditas, harian sejak 1 Januari 2024.
   - **SP2KP Kemendag:** Pasar Sukaramai dan Pusat Pasar, 2 komoditas.
 - **Komoditas (14):**
@@ -250,11 +265,29 @@ Untuk mencoba sifat dinamisnya: buka **Kelola Data**, tambahkan satu data harga,
 
 Data sintetis untuk uji (`python scripts/gen_data_dev.py`) hanya untuk menguji aplikasi dan **tidak boleh dipakai di laporan**.
 
+### Data baru otomatis (layanan `scraper`)
+
+- **Kapan:** saat layanan menyala (dilewati bila tarikan sukses terakhir kurang dari 3 jam lalu), lalu setiap hari pukul 10.00 dan 16.00 WIB (`SCRAPER_JADWAL`), dan kapan saja lewat tombol **Ambil data sekarang** di Kelola Data.
+- **Apa yang diambil:** harga 12 komoditas di 21 pasar dari halaman peta harga SIMPANG (`?menu=peta`), satu permintaan per komoditas per tanggal. Rentangnya dari 7 hari sebelum tanggal terakhir di database sampai hari ini, supaya harga yang diunggah terlambat ikut terisi. SP2KP belum diambil otomatis (ID pasar SP2KP belum lengkap).
+- **Alurnya:** ambil, simpan mentah ke `data/raw/otomatis/`, tambahkan ke `master_data_harian.csv`, bersihkan dengan aturan yang sama dengan `etl_master.py` (`scripts/aturan_bersih.py`), lalu impor lewat backend. Setelah itu model dilatih ulang otomatis.
+- **Tanpa duplikat:** master dan database memakai kunci yang sama (`tanggal, kecamatan, nama_pasar, komoditas, sumber`). Menjalankan tarikan berkali-kali aman; yang bertambah hanya data yang benar-benar baru. Harga yang tadinya 0 lalu diunggah belakangan akan diisi.
+- **Hari yang belum lengkap ditahan:** tanggal dengan kurang dari 15 pasar melapor tidak diimpor dulu; tarikan berikutnya mengimpornya setelah lengkap. Sabtu dan Minggu memang tidak berisi harga di SIMPANG.
+- **Etika akses:** robots.txt SIMPANG mengizinkan akses (`Allow: /`). Scraper memakai User-Agent yang jujur (nama proyek dan `SCRAPER_KONTAK`), jeda 2 detik antarpermintaan, dan **berhenti** bila server menolak (HTTP 403/429/503) atau menampilkan halaman tantangan. Tidak ada upaya melewati proteksi.
+- **Bekerja dalam tim:** database tiap laptop terpisah. Cukup satu orang (`SCRAPER_TULIS_MASTER=1`) yang meng-commit master CSV. Anggota lain memakai `SCRAPER_TULIS_MASTER=0`; database mereka tetap terisi oleh scraper, atau bisa disamakan dari master terbaru dengan langkah 5 dan 6 tanpa scraping.
+- **Tanpa Docker** (mis. menguji satu tarikan dari terminal, dari folder induk):
+
+  ```powershell
+  pip install fastapi "uvicorn[standard]" requests tzdata pandas
+  $env:PYTHONPATH="scraper"; $env:BACKEND_URL="http://localhost:8080"; $env:SCRIPTS_DIR="scripts"; $env:DATA_DIR="data"
+  python -m app.cli --dry-run     # ambil dan bersihkan saja, tidak mengubah apa pun
+  python -m app.cli               # tarikan penuh
+  ```
+
 ---
 
 ## 6. Struktur proyek
 
-Gambaran besar: empat layanan aplikasi (`frontend`, `backend`, `ml`, `db`) dijalankan oleh `docker-compose.yml`;
+Gambaran besar: lima layanan aplikasi (`frontend`, `backend`, `ml`, `scraper`, `db`) dijalankan oleh `docker-compose.yml`;
 folder `config/`, `data/`, `scripts/`, `notebooks/`, dan `docs/` berisi referensi, data, skrip olah data, eksperimen model, dan dokumentasi.
 
 | Folder | Isi | Dipakai oleh |
@@ -262,9 +295,10 @@ folder `config/`, `data/`, `scripts/`, `notebooks/`, dan `docs/` berisi referens
 | `frontend/` | Dashboard web (React + Vite, disajikan nginx) | layanan `frontend` |
 | `backend/` | API, validasi, impor/ekspor CSV, data warehouse, pemicu pelatihan ulang (Go) | layanan `backend` |
 | `ml/` | Pelatihan model, prediksi, status harga (Python FastAPI) | layanan `ml` |
+| `scraper/` | Pengambilan data harga otomatis dari SIMPANG (Python FastAPI) | layanan `scraper` |
 | `config/` | Referensi kecamatan, pasar, komoditas, dan batas harga | `backend`, `ml`, `scripts` |
 | `data/` | Data mentah, data bersih hasil ETL, data uji | `scripts`, `notebooks` |
-| `scripts/` | Skrip olah data yang dijalankan manual dari terminal | pengguna |
+| `scripts/` | Skrip olah data yang dijalankan manual dari terminal, dan aturan pembersihan bersama | pengguna, `scraper` |
 | `notebooks/` | Notebook eksperimen pemodelan | pengguna (Jupyter / VS Code) |
 | `docs/` | Dokumentasi data, aplikasi, model, laporan, logbook | pengguna, dosen |
 
@@ -274,9 +308,10 @@ folder `config/`, `data/`, `scripts/`, `notebooks/`, dan `docs/` berisi referens
 Dasi_Dalis_04/
 ├── README.md               panduan menjalankan proyek (dokumen ini)
 ├── Project.md              keputusan, status, dan rencana kerja proyek
-├── docker-compose.yml      menjalankan db + backend + ml + frontend
+├── docker-compose.yml      menjalankan db + backend + ml + scraper + frontend
 ├── .env.example            contoh pengaturan; salin menjadi .env (tidak ikut di-commit)
-├── .gitignore              daftar berkas yang tidak ikut di-commit (.env, node_modules, .venv, data/processed, data/dev)
+├── .gitignore              daftar berkas yang tidak ikut di-commit (.env, node_modules, .venv, data/processed, data/dev, data/raw/otomatis)
+├── .vscode/settings.json   pengaturan VS Code: folder scripts/ dikenali Pylance
 └── Makefile                pintasan perintah (macOS/Linux)
 ```
 
@@ -293,17 +328,18 @@ frontend/
 └── src/
     ├── main.jsx            titik awal aplikasi React
     ├── App.jsx             daftar rute halaman
-    ├── AppContext.jsx      data bersama: referensi, status model, pemantauan pelatihan ulang
+    ├── AppContext.jsx      data bersama: referensi, status model, pemantauan pelatihan ulang dan scraper
     ├── styles.css          gaya tampilan umum
     ├── api/
     │   └── client.js       semua pemanggilan API backend
     ├── lib/
-    │   ├── format.js       format rupiah, persen, tanggal
-    │   └── format.test.js  tes format.js
+    │   ├── format.js       format rupiah, persen, tanggal, waktu
+    │   ├── format.test.js  tes format.js
+    │   └── scraper.js      pembantu tampilan status dan riwayat scraper
     ├── data/
     │   └── medan_kecamatan.json   batas wilayah 21 kecamatan (GeoJSON) untuk peta
     ├── components/
-    │   ├── Layout.jsx      kerangka halaman: judul, menu, status model, kaki halaman
+    │   ├── Layout.jsx      kerangka halaman: judul, menu, status model, status pengambilan data, kaki halaman
     │   ├── Umum.jsx        komponen kecil bersama (pilihan kecamatan/komoditas, badge status, pesan galat)
     │   ├── PetaMedan.jsx   peta choropleth harga per kecamatan (Google Maps)
     │   └── viz/            komponen visual analitik
@@ -324,7 +360,7 @@ frontend/
     │   ├── Analisis.jsx       analisis mendalam dengan filter global
     │   ├── Cerita.jsx         lima temuan utama (storytelling)
     │   ├── Prediksi.jsx       prediksi 7 dan 14 hari, status, evaluasi model
-    │   └── KelolaData.jsx     tambah, ubah, hapus, impor, ekspor data
+    │   └── KelolaData.jsx     tambah, ubah, hapus, impor, ekspor data, pengambilan otomatis
     └── __tests__/
         └── halaman.test.jsx   tes halaman
 ```
@@ -344,7 +380,9 @@ backend/
 │   │   └── config_test.go
 │   ├── handler/
 │   │   ├── handler.go      rute dan endpoint HTTP /api
-│   │   └── analitik_wh.go  endpoint /api/analitik/* (KPI, peta panas, sebaran, wilayah, deret, statistik)
+│   │   ├── analitik_wh.go  endpoint /api/analitik/* (KPI, peta panas, sebaran, wilayah, deret, statistik)
+│   │   ├── scraper.go      endpoint /api/scraper/status dan /api/scraper/jalankan (diteruskan ke layanan scraper)
+│   │   └── scraper_test.go
 │   ├── service/
 │   │   ├── service.go      logika tulis data, validasi, versi data, pemicu pelatihan ulang
 │   │   ├── analitik.go     ringkasan, tren, perbandingan, halaman prediksi
@@ -390,7 +428,31 @@ ml/
     └── test_pipeline_api.py
 ```
 
-### 6.5 `config/`, `data/`, `scripts/`, `notebooks/`
+### 6.5 `scraper/` (layanan pengambil data)
+
+```
+scraper/
+├── Dockerfile              image Python untuk layanan scraper
+├── .dockerignore           berkas yang tidak ikut ke image Docker (tests, cache)
+├── requirements.txt        paket Python
+├── app/
+│   ├── main.py             API FastAPI: /health, /status, /jalankan; menyalakan penjadwal
+│   ├── jadwal.py           penjadwal: tarikan saat menyala dan pada jam SCRAPER_JADWAL
+│   ├── tarikan.py          alur satu tarikan: rentang, ambil, simpan mentah, perbarui master, bersihkan, impor
+│   ├── sumber_simpang.py   pengambil halaman peta harga SIMPANG
+│   ├── sumber_sp2kp.py     pengambil API SP2KP (belum aktif: menunggu ID pasar)
+│   ├── backend.py          tanggal terakhir di database dan impor CSV lewat backend
+│   ├── riwayat.py          riwayat tarikan (data/raw/otomatis/riwayat_tarikan.jsonl)
+│   ├── cli.py              menjalankan satu tarikan dari terminal (python -m app.cli)
+│   ├── config.py           pengaturan dari variabel lingkungan (SCRAPER_*)
+│   └── __init__.py
+└── tests/
+    ├── conftest.py         halaman SIMPANG tiruan dan folder data sementara
+    ├── test_sumber.py
+    └── test_tarikan.py
+```
+
+### 6.6 `config/`, `data/`, `scripts/`, `notebooks/`
 
 ```
 config/
@@ -399,7 +461,8 @@ config/
 data/
 ├── template_import.csv     contoh format impor (6 kolom)
 ├── raw/                    data mentah, tidak pernah diedit
-│   ├── master_data_harian.csv    gabungan SIMPANG + SP2KP (masukan etl_master.py)
+│   ├── master_data_harian.csv    gabungan SIMPANG + SP2KP (masukan etl_master.py), ditambah otomatis oleh scraper
+│   ├── otomatis/                 hasil mentah tiap tarikan scraper dan riwayat_tarikan.jsonl (tidak ikut di-commit)
 │   └── simpang/
 │       └── data_harian_simpang_medan.csv   data SIMPANG awal, 5 komoditas (arsip)
 ├── processed/              hasil etl_master.py (tidak ikut di-commit, dibuat ulang)
@@ -410,6 +473,8 @@ data/
 
 scripts/
 ├── etl_master.py           ETL utama: master_data_harian.csv → data/processed/
+├── aturan_bersih.py        aturan pembersihan dan penggabungan ke master, dipakai etl_master.py dan scraper
+├── test_aturan_bersih.py   tes aturan_bersih.py
 ├── impor_csv.py            kirim CSV hasil ETL ke backend (POST /api/harga/import)
 ├── laporan_kualitas.py     buat docs/kualitas_data.md (kualitas data sebelum dan sesudah)
 ├── cek_akses_simpang.py    cek sekali apakah halaman SIMPANG dapat diakses
@@ -420,7 +485,7 @@ notebooks/
 └── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sudah ada)
 ```
 
-### 6.6 `docs/` (dokumentasi)
+### 6.7 `docs/` (dokumentasi)
 
 ```
 docs/
@@ -446,5 +511,7 @@ Tes **tidak** berjalan di Docker; ia butuh alat masing-masing di laptop (hanya b
 | Frontend | Node.js 20+ | `cd frontend && npm install && npm test` |
 | ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **16 lulus**) |
 | Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` |
+| Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` (harus **34 lulus**) |
+| Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest scripts/test_aturan_bersih.py -q` (harus **9 lulus**) |
 
 Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv/bin/activate`.

@@ -71,6 +71,9 @@ func (h *Handler) Router() http.Handler {
 
 		// Analitik dari data warehouse (halaman Analisis, Cerita, kartu KPI): analitik_wh.go
 		h.rutAnalitik(r)
+
+		// Pengambilan data otomatis (layanan scraper): scraper.go
+		h.rutScraper(r)
 	})
 	return r
 }

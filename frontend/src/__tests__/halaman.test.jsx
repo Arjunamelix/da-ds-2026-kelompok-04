@@ -81,7 +81,24 @@ const RESP = {
     status: [{ komoditas: 'beras_medium', n_uji: 359, n_berisiko: 0, recall_berisiko: null, presisi_berisiko: null, ambang_waspada_pct: 2, ambang_lonjakan_pct: 3 }],
   },
   '/api/harga': { data: [], total: 0, page: 1, per_page: 25 },
+  '/api/scraper/status': {
+    sedang_berjalan: false, mulai: null, pemicu: null, aktif: true, sumber: ['simpang'], jadwal: ['10:00', '16:00'], zona: 'Asia/Jakarta',
+    berikutnya: '2026-11-05T16:00+07:00',
+    terakhir_sukses: null, // diisi di bawah
+    riwayat: [],
+  },
+  '/api/scraper/jalankan': { status: 'running' },
 }
+const TARIKAN = {
+  mulai: '2026-11-05T10:00:02+07:00', selesai: '2026-11-05T10:04:31+07:00', pemicu: 'jadwal', dry_run: false, status: 'sukses', baris_baru: 2964,
+  sumber: {
+    simpang: {
+      status: 'sukses', ambil: { permintaan: 120, dari: '2026-10-27', sampai: '2026-11-05' },
+      ditahan: [{ tanggal: '2026-11-04', pasar: 6 }], tanggal_berdata: ['2026-10-30', '2026-11-03'],
+    },
+  },
+}
+RESP['/api/scraper/status'] = { ...RESP['/api/scraper/status'], terakhir: TARIKAN, terakhir_sukses: TARIKAN, riwayat: [TARIKAN] }
 
 let panggilan
 beforeEach(() => {
@@ -156,6 +173,37 @@ describe('halaman', () => {
     expect(body).toMatchObject({ kecamatan: 'KOTA MEDAN', nama_pasar: 'SEMUA', komoditas: 'beras_medium', harga: 52000, sumber: 'PIHPS' })
     expect(await screen.findByText('Data tersimpan')).toBeTruthy()
     expect(screen.getByText(/harga berubah 60%/)).toBeTruthy()
+  })
+
+  it('Header: kapan data terakhir diambil dari SIMPANG', async () => {
+    tampil('/')
+    const chip = await screen.findByText('Diambil 5 Nov, 10.04')
+    expect(chip.getAttribute('title')).toBe('Data SIMPANG terakhir diambil · data sampai 3 Nov 2026 · berikutnya 16.00 WIB')
+    expect(chip.getAttribute('href')).toBe('/kelola?tab=otomatis')
+  })
+
+  it('Kelola Data: tab Pengambilan otomatis menampilkan riwayat dan tombol Ambil data sekarang', async () => {
+    tampil('/kelola?tab=otomatis')
+    expect(await screen.findByText('Riwayat pengambilan')).toBeTruthy()
+    expect(screen.getByText('Terjadwal')).toBeTruthy()
+    expect(screen.getByText('Sukses')).toBeTruthy()
+    expect(screen.getByText('27 Okt 2026 – 5 Nov 2026')).toBeTruthy()
+    expect(screen.getByText(/4 Nov 2026 ditahan \(baru 6 pasar melapor\)/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Ambil data sekarang' }))
+    await waitFor(() => expect(panggilan.some((p) => p.method === 'POST' && p.path === '/api/scraper/jalankan')).toBe(true))
+    expect(await screen.findByText(/Pengambilan data dimulai/)).toBeTruthy()
+  })
+
+  it('Scraper mati: halaman lain tetap jalan dan chip memberi tahu', async () => {
+    const asli = RESP['/api/scraper/status']
+    delete RESP['/api/scraper/status']
+    try {
+      tampil('/')
+      expect(await screen.findByText('Beras Medium')).toBeTruthy()
+      expect(await screen.findByText('Scraper tidak aktif')).toBeTruthy()
+    } finally {
+      RESP['/api/scraper/status'] = asli
+    }
   })
 
   it('Kelola Data: harga bukan angka ditolak di sisi klien tanpa memanggil API', async () => {

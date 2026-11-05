@@ -116,6 +116,8 @@ tr.redup td { color: var(--redup); }
 .tag-oranye { background: color-mix(in srgb, var(--oranye) 20%, transparent); color: var(--oranye); }
 .tag-aqua { background: color-mix(in srgb, var(--aqua) 20%, transparent); color: var(--aqua); }
 .tag-abu { background: var(--garis); color: var(--redup); }
+.nowrap { white-space: nowrap; }
+.tag-merah { background: color-mix(in srgb, var(--bahaya) 15%, transparent); color: var(--bahaya); }
 
 .tombol, .tombol-kecil { font: inherit; font-size: .88rem; border: 1px solid var(--garis); background: var(--kartu); color: var(--teks); padding: .45rem .9rem; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; }
 .tombol:hover:not(:disabled), .tombol-kecil:hover { border-color: var(--biru); }
@@ -127,8 +129,8 @@ tr.redup td { color: var(--redup); }
 .aksi { display: flex; gap: .5rem; margin-top: .75rem; }
 .halaman { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; font-size: .88rem; }
 
-.tab { display: flex; gap: .25rem; border-bottom: 1px solid var(--garis); margin-bottom: 1rem; }
-.tab button { font: inherit; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: .55rem .9rem; cursor: pointer; color: var(--redup); }
+.tab { display: flex; gap: .25rem; border-bottom: 1px solid var(--garis); margin-bottom: 1rem; overflow-x: auto; }
+.tab button { font: inherit; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: .55rem .9rem; cursor: pointer; color: var(--redup); white-space: nowrap; flex-shrink: 0; }
 .tab button.aktif { color: var(--teks); border-bottom-color: var(--biru); font-weight: 600; }
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .75rem; }
@@ -149,6 +151,11 @@ tr.redup td { color: var(--redup); }
 .chip-oranye { border-color: var(--oranye); color: var(--oranye); }
 .chip-merah { border-color: var(--bahaya); color: var(--bahaya); }
 .chip-abu { color: var(--redup); }
+.chip-baris { display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+/* Layar lebar: dua chip ditumpuk supaya menu tetap satu baris. */
+@media (min-width: 900px) { .chip-baris { flex-direction: column; align-items: flex-end; gap: .2rem; } .chip-baris .chip { padding: .1rem .6rem; font-size: .75rem; } }
+a.chip { text-decoration: none; }
+a.chip:hover { border-color: var(--biru); }
 .spinner { width: 12px; height: 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: putar .8s linear infinite; }
 @keyframes putar { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } .kartu { transition: none; } }

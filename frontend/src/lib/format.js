@@ -28,6 +28,26 @@ export function tanggalID(iso) {
   return `${d} ${BULAN[m - 1]} ${y}`
 }
 
+// Waktu ISO dengan zona (mis. "2026-11-05T14:15:25+07:00") -> "5 Nov 2026, 14.15".
+// Jam dibaca apa adanya dari teks (WIB dari layanan scraper), tidak dikonversi ke zona browser.
+export function waktuID(iso) {
+  if (!iso) return '-'
+  const jam = /T(\d{2}):(\d{2})/.exec(iso)
+  return jam ? `${tanggalID(iso)}, ${jam[1]}.${jam[2]}` : tanggalID(iso)
+}
+
+// Versi ringkas tanpa tahun untuk chip di header: "5 Nov, 14.15".
+export function waktuSingkat(iso) {
+  const jam = iso && /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso)
+  return jam ? `${Number(jam[3])} ${BULAN[Number(jam[2]) - 1]}, ${jam[4]}.${jam[5]}` : '-'
+}
+
+// Jam saja dari waktu ISO: "2026-11-05T16:00+07:00" -> "16.00".
+export function jamID(iso) {
+  const jam = iso && /T(\d{2}):(\d{2})/.exec(iso)
+  return jam ? `${jam[1]}.${jam[2]}` : '-'
+}
+
 export function keMs(iso) {
   const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
   return Date.UTC(y, m - 1, d)

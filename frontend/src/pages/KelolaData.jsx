@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useApp } from '../AppContext.jsx'
 import { Galat, Kosong, Memuat } from '../components/Umum.jsx'
-import { angka, rupiah, tanggalID } from '../lib/format.js'
+import { angka, jamID, rupiah, tanggalID, waktuID } from '../lib/format.js'
+import { LABEL_PEMICU, LABEL_STATUS, dataSampai, pesanSumber, rentangDiambil, tanggalDitahan } from '../lib/scraper.js'
 
 function hariIni() {
   const d = new Date()
@@ -555,19 +557,161 @@ function TabImporEkspor() {
   )
 }
 
+function TagStatus({ status }) {
+  const l = LABEL_STATUS[status] || { teks: status, kelas: 'tag-abu' }
+  return <span className={'tag ' + l.kelas}>{l.teks}</span>
+}
+
+// Pengambilan data otomatis dari SIMPANG (layanan scraper/): status, tombol tarik sekarang, riwayat.
+function TabOtomatis() {
+  const { scraper, galatScraper, segarkanScraper, ambilDataSekarang } = useApp()
+  const [kirim, setKirim] = useState(false)
+  const [pesan, setPesan] = useState(null)
+
+  const ambil = async () => {
+    setKirim(true)
+    setPesan(null)
+    try {
+      await ambilDataSekarang()
+      setPesan({ ok: true, teks: 'Pengambilan data dimulai. Prosesnya beberapa menit; halaman ini memperbarui diri sendiri.' })
+    } catch (e) {
+      setPesan({ ok: false, teks: e.status === 409 ? 'Pengambilan lain masih berjalan. Tunggu sampai selesai.' : e.message, detail: e.detail })
+      segarkanScraper()
+    } finally {
+      setKirim(false)
+    }
+  }
+
+  if (galatScraper && !scraper) {
+    return (
+      <>
+        <Galat pesan={galatScraper.message} detail={galatScraper.detail} />
+        <p className="catatan">
+          Layanan scraper berjalan sebagai service <code>scraper</code> di Docker Compose. Setelah layanan menyala, halaman ini terisi otomatis.
+        </p>
+      </>
+    )
+  }
+  if (!scraper) return <Memuat />
+
+  const berjalan = scraper.sedang_berjalan
+  const sukses = scraper.terakhir_sukses
+  const sampai = dataSampai(sukses)
+
+  return (
+    <>
+      <div className="panel">
+        <h2>Pengambilan data otomatis</h2>
+        <p className="catatan">
+          Harga harian diambil dari SIMPANG Pemko Medan saat layanan menyala dan setiap hari pukul {(scraper.jadwal || []).map((j) => j.replace(':', '.')).join(' dan ')} WIB.
+          Setiap pengambilan membaca ulang 7 hari terakhir sampai hari ini; data yang sudah ada dilewati, jadi tidak ada data ganda.
+          Sabtu dan Minggu memang tidak berisi harga di SIMPANG.
+        </p>
+        <div className="ringkas">
+          <div className="ringkas-item">
+            <span>Status</span>
+            <strong>
+              {berjalan ? (
+                <>
+                  <span className="spinner" aria-hidden="true" /> Sedang mengambil
+                </>
+              ) : (
+                'Siap'
+              )}
+            </strong>
+            {berjalan && <small>sejak {waktuID(scraper.mulai)} ({LABEL_PEMICU[scraper.pemicu] || scraper.pemicu})</small>}
+          </div>
+          <div className="ringkas-item">
+            <span>Terakhir berhasil</span>
+            <strong>{sukses ? waktuID(sukses.selesai) : '-'}</strong>
+            {sukses && <small>{angka(sukses.baris_baru)} baris baru</small>}
+          </div>
+          <div className="ringkas-item">
+            <span>Data sampai</span>
+            <strong>{sampai ? tanggalID(sampai) : '-'}</strong>
+            <small>hari terakhir dengan harga lengkap</small>
+          </div>
+          <div className="ringkas-item">
+            <span>Berikutnya</span>
+            <strong>{scraper.berikutnya ? `${jamID(scraper.berikutnya)} WIB` : scraper.aktif ? '-' : 'Jadwal mati'}</strong>
+            {scraper.berikutnya && <small>{tanggalID(scraper.berikutnya)}</small>}
+          </div>
+        </div>
+        <div className="aksi">
+          <button className="tombol tombol-utama" onClick={ambil} disabled={berjalan || kirim}>
+            {berjalan ? 'Sedang mengambil…' : kirim ? 'Memulai…' : 'Ambil data sekarang'}
+          </button>
+        </div>
+        {pesan && (pesan.ok ? <p className="catatan" role="status">{pesan.teks}</p> : <Galat pesan={pesan.teks} detail={pesan.detail} />)}
+        {galatScraper && <Galat pesan={'Status terakhir tidak bisa diperbarui: ' + galatScraper.message} />}
+      </div>
+
+      <div className="panel">
+        <h2>Riwayat pengambilan</h2>
+        {!scraper.riwayat?.length ? (
+          <Kosong>Belum ada pengambilan data yang tercatat.</Kosong>
+        ) : (
+          <div className="tabel-gulir">
+            <table>
+              <thead>
+                <tr>
+                  <th>Waktu</th>
+                  <th>Pemicu</th>
+                  <th>Status</th>
+                  <th>Tanggal diambil</th>
+                  <th className="kanan">Baris baru</th>
+                  <th>Keterangan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scraper.riwayat.map((c) => {
+                  const r = rentangDiambil(c)
+                  const ditahan = tanggalDitahan(c)
+                  const ket = [
+                    ...pesanSumber(c),
+                    ...ditahan.map((d) => `${tanggalID(d.tanggal)} ditahan (baru ${d.pasar} pasar melapor)`),
+                  ]
+                  return (
+                    <tr key={c.mulai}>
+                      <td className="nowrap">{waktuID(c.mulai)}</td>
+                      <td>{LABEL_PEMICU[c.pemicu] || c.pemicu}</td>
+                      <td>
+                        <TagStatus status={c.status} />
+                      </td>
+                      <td className="nowrap">{r ? `${tanggalID(r.dari)} – ${tanggalID(r.sampai)}` : '-'}</td>
+                      <td className="kanan">{angka(c.baris_baru)}</td>
+                      <td className="redup">{ket.length ? ket.join('; ') : '-'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+const TAB = [
+  ['tambah', 'Tambah data'],
+  ['daftar', 'Daftar dan ubah'],
+  ['impor', 'Impor / ekspor CSV'],
+  ['otomatis', 'Pengambilan otomatis'],
+]
+
 export default function KelolaData() {
-  const [tab, setTab] = useState('tambah')
+  // Tab aktif disimpan di URL (?tab=otomatis) supaya chip di header bisa langsung membuka tab ini.
+  const [params, setParams] = useSearchParams()
+  const tab = TAB.some(([k]) => k === params.get('tab')) ? params.get('tab') : 'tambah'
+  const setTab = (k) => setParams(k === 'tambah' ? {} : { tab: k }, { replace: true })
   return (
     <>
       <div className="bar-judul">
         <h1>Kelola data</h1>
       </div>
       <div className="tab" role="tablist">
-        {[
-          ['tambah', 'Tambah data'],
-          ['daftar', 'Daftar dan ubah'],
-          ['impor', 'Impor / ekspor CSV'],
-        ].map(([k, l]) => (
+        {TAB.map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'aktif' : ''} onClick={() => setTab(k)}>
             {l}
           </button>
@@ -576,6 +720,7 @@ export default function KelolaData() {
       {tab === 'tambah' && <TabTambah />}
       {tab === 'daftar' && <TabDaftar />}
       {tab === 'impor' && <TabImporEkspor />}
+      {tab === 'otomatis' && <TabOtomatis />}
     </>
   )
 }
