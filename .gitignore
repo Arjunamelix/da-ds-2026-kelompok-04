@@ -12,3 +12,4 @@ simpang_*.html
 simpang_*.js
 data/raw/scraper_output.csv
 logs/
+data/raw/otomatis/
