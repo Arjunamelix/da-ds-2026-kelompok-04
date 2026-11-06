@@ -414,16 +414,18 @@ ml/
 ├── app/
 │   ├── main.py             API FastAPI: /health, /retrain, pelatihan ulang di latar belakang
 │   ├── pipeline.py         alur lengkap: baca data, fitur, latih, evaluasi, tulis hasil
-│   ├── fitur.py            deret harian dan fitur model
+│   ├── fitur.py            deret harian dan fitur model (model per deret yang sedang berjalan)
+│   ├── fitur_global.py     fitur model gabungan hasil S2 (dipakai notebook, dan aplikasi mulai S6)
 │   ├── model.py            baseline naif dan model boosting
 │   ├── evaluasi.py         evaluasi walk-forward: MAE, RMSE, MAPE vs baseline
 │   ├── status.py           status Normal / Waspada / Lonjakan dan evaluasinya
-│   ├── kalender.py         daftar hari besar untuk fitur
+│   ├── kalender.py         daftar hari besar dan periode Ramadan (ketetapan pemerintah)
 │   ├── db.py               baca tabel harga, tulis tabel hasil model
 │   └── config.py           pengaturan dari variabel lingkungan (ML_*)
 └── tests/
     ├── conftest.py               data uji sintetis
     ├── test_fitur.py
+    ├── test_fitur_global.py      termasuk cek tanpa kebocoran data
     ├── test_evaluasi_status.py
     └── test_pipeline_api.py
 ```
@@ -482,7 +484,7 @@ scripts/
 └── gen_data_dev.py         pembuat data sintetis uji
 
 notebooks/
-└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sudah ada)
+└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 dan S2 sudah ada)
 ```
 
 ### 6.7 `docs/` (dokumentasi)
@@ -498,7 +500,8 @@ docs/
 ├── visualisasi.md          daftar visual dan interaktivitas dashboard
 ├── logbook.md              catatan kerja mingguan
 ├── model/
-│   └── S1_problem_framing.md   ringkasan problem framing (S1)
+│   ├── S1_problem_framing.md       ringkasan problem framing (S1)
+│   └── S2_feature_engineering.md   ringkasan preprocessing dan feature engineering (S2)
 └── laporan/                laporan akhir dan bahan presentasi
 ```
 
@@ -509,9 +512,12 @@ Tes **tidak** berjalan di Docker; ia butuh alat masing-masing di laptop (hanya b
 | Bagian | Syarat | Perintah |
 |---|---|---|
 | Frontend | Node.js 20+ | `cd frontend && npm install && npm test` |
-| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **16 lulus**) |
+| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **23 lulus**) |
 | Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` |
 | Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` (harus **34 lulus**) |
 | Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest scripts/test_aturan_bersih.py -q` (harus **9 lulus**) |
 
 Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv/bin/activate`.
+
+Notebook `notebooks/pemodelan.ipynb` memakai venv ML yang sama ditambah dua paket: `pip install matplotlib ipykernel`.
+Buka di VS Code, pilih kernel `ml\.venv`, lalu **Run All** (sekitar 5–10 menit). Notebook hanya memakai data sampai 15 Oktober 2026.

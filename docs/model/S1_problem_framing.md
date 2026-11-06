@@ -74,23 +74,23 @@ hiperparameter tetap), dilatih dengan latih + validasi lalu diuji di data uji; (
 | h | Kelompok | Model | MAE (Rp) | RMSE (Rp) | MAPE | R² perubahan |
 |---|---|---|---|---|---|---|
 | 7 | Bergejolak | naif | 3.567 | 5.934 | 7,77% | −0,010 |
-| 7 | Bergejolak | model lama | 4.029 | 6.269 | 8,89% | −0,150 |
+| 7 | Bergejolak | model lama | 4.028 | 6.257 | 8,90% | −0,149 |
 | 7 | Stabil | naif | 329 | 2.424 | 0,77% | −0,001 |
-| 7 | Stabil | model lama | 575 | 2.434 | 1,57% | −0,351 |
+| 7 | Stabil | model lama | 576 | 2.434 | 1,58% | −0,349 |
 | 7 | Semua | naif | 1.701 | 4.279 | 3,73% | −0,003 |
-| 7 | Semua | model lama | 2.038 | 4.480 | 4,68% | −0,162 |
+| 7 | Semua | model lama | 2.039 | 4.472 | 4,68% | −0,160 |
 | 14 | Bergejolak | naif | 4.903 | 7.645 | 10,57% | −0,036 |
-| 14 | Bergejolak | model lama | 5.505 | 8.117 | 12,03% | −0,166 |
+| 14 | Bergejolak | model lama | 5.506 | 8.108 | 12,05% | −0,164 |
 | 14 | Stabil | naif | 514 | 2.996 | 1,24% | −0,001 |
-| 14 | Stabil | model lama | 802 | 2.960 | 2,25% | −0,299 |
+| 14 | Stabil | model lama | 803 | 2.960 | 2,25% | −0,303 |
 | 14 | Semua | naif | 2.375 | 5.473 | 5,20% | −0,012 |
-| 14 | Semua | model lama | 2.796 | 5.743 | 6,40% | −0,155 |
+| 14 | Semua | model lama | 2.797 | 5.738 | 6,41% | −0,154 |
 
 Per komoditas (h = 7, MAPE naif → model lama): cabai merah 14,3% → 15,1%; cabai rawit 10,0% → 11,2%; bawang merah 5,6% → 7,1%;
 daging ayam ras 4,8% → 5,7%; bawang putih 4,2% → 5,3%; garam halus 1,6% → 1,6%; jagung 1,4% → 2,8%; daging sapi 1,3% → 1,8%;
 telur ayam ras 1,2% → 3,3%; gula pasir 0,4% → 0,7%; beras medium 0,4% → 1,0%; minyak goreng curah 0,3% → 0,8%; kedelai 0,3% → 0,5%.
 
-**Model lama lebih buruk dari baseline naif di semua komoditas**, dan hanya lebih baik pada 9 dari 165 deret (h = 7) serta 23 dari 165 deret (h = 14).
+**Model lama lebih buruk dari baseline naif di semua komoditas**, dan hanya lebih baik pada 11 dari 165 deret (h = 7) serta 19 dari 165 deret (h = 14).
 Penyebab yang paling mungkin: satu model per deret hanya punya ratusan baris latih, sehingga model mempelajari gerakan acak, termasuk
 pada komoditas yang harganya hampir tidak pernah berubah.
 
@@ -109,8 +109,8 @@ Patokan di data uji (10.979 hari uji, 1.231 kejadian berisiko):
 | Aturan | Ditandai | Recall | Presisi | F1 |
 |---|---|---|---|---|
 | Persistensi (aktual 7 hari terakhir saja) | 1.185 | 0,202 | 0,210 | 0,206 |
-| Model lama (prediksi saja) | 1.044 | 0,165 | 0,194 | 0,178 |
-| Kombinasi: aktual atau model lama | 2.192 | 0,364 | 0,204 | 0,262 |
+| Model lama (prediksi saja) | 1.041 | 0,166 | 0,196 | 0,180 |
+| Kombinasi: aktual atau model lama | 2.188 | 0,365 | 0,205 | 0,263 |
 
 ## 7. Kriteria sukses (dinilai di data uji pada S4)
 
@@ -144,5 +144,6 @@ kelompok itu (diputuskan di S5).
 | Harga janggal (jagung di sebagian pasar, bawang merah 6 Sep 2024) | Tidak dihapus manual; tetap mengikuti aturan ETL (tolak bila menyimpang > 40% dari median pasar lain). Dibahas sebagai contoh kasus di S5 |
 | Kalender hari besar | Semua tanggal memakai ketetapan pemerintah (sidang isbat dan SKB). Awal Ramadan 2024 dikoreksi dari 11 Maret menjadi **12 Maret 2024**. Ramadan 2026 mulai 19 Februari dan Idulfitri 21 Maret 2026 sudah sesuai |
 
-Catatan: patokan "model lama" di bagian 5 dihitung dengan kalender sebelum koreksi. Selisihnya satu hari pada Maret 2024 (periode latih),
-sehingga pengaruhnya diabaikan; seluruh patokan dihitung ulang di S4 dengan kalender yang sudah dikoreksi.
+Patokan "model lama" di bagian 5 dan 6 sudah dihitung ulang dengan kalender yang dikoreksi. Perubahannya sangat kecil
+(MAE berubah kurang dari Rp2), kecuali jumlah deret tempat model lama mengalahkan naif: 11 (sebelumnya 9) untuk h = 7
+dan 19 (sebelumnya 23) untuk h = 14. Kesimpulannya tetap: model lama lebih buruk dari naif di semua komoditas.
