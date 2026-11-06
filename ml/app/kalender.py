@@ -1,15 +1,16 @@
 """Kalender hari besar sebagai input model (Project.md 1.2: dipakai di belakang layar).
 
-PERHATIAN: tanggal di bawah adalah perkiraan dari pengetahuan umum dan harus diverifikasi tim
-dengan kalender resmi (SKB 3 Menteri) sebelum dipakai di laporan. Tanggal awal Ramadan dan
-Idul Fitri/Idul Adha bergantung pada sidang isbat.
+Tanggal memakai ketetapan pemerintah (SKB 3 Menteri dan sidang isbat Kemenag), disepakati di S1.
+Isi tiap tahun: tahun baru, Imlek, awal Ramadan, Idulfitri (2 hari), Iduladha, Natal.
+Koreksi S1: awal Ramadan 2024 = 12 Maret (sebelumnya 11 Maret, versi Muhammadiyah).
+Tanggal 2027 masih perkiraan; perbarui setelah SKB 2027 terbit.
 """
 import numpy as np
 import pandas as pd
 
 HARI_BESAR = pd.to_datetime([
     # 2024
-    "2024-01-01", "2024-02-10", "2024-03-11", "2024-04-10", "2024-04-11", "2024-06-17", "2024-12-25",
+    "2024-01-01", "2024-02-10", "2024-03-12", "2024-04-10", "2024-04-11", "2024-06-17", "2024-12-25",
     # 2025
     "2025-01-01", "2025-01-29", "2025-03-01", "2025-03-31", "2025-04-01", "2025-06-06", "2025-12-25",
     # 2026
