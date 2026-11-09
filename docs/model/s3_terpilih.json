@@ -1,0 +1,51 @@
+{
+  "algoritma": "lightgbm",
+  "strategi": "per_kelompok",
+  "fitur": [
+    "komoditas_kode",
+    "bergejolak",
+    "tingkat_kota",
+    "ret_3",
+    "ret_14",
+    "rasio_ma30",
+    "rasio_ma365",
+    "frac_berubah_28",
+    "hari_sejak_berubah",
+    "n_pasar",
+    "dispersi",
+    "selisih_kota",
+    "ret_7_kota"
+  ],
+  "seed": 42,
+  "kelompok_bergejolak": [
+    "cabai_merah",
+    "cabai_rawit",
+    "bawang_merah",
+    "daging_ayam_ras",
+    "bawang_putih"
+  ],
+  "param": {
+    "7": {
+      "objective": "l1",
+      "learning_rate": 0.01094684476594885,
+      "n_estimators": 450,
+      "num_leaves": 18,
+      "min_child_samples": 23,
+      "subsample": 0.7207808089240471,
+      "colsample_bytree": 0.9822244308900996,
+      "reg_lambda": 0.019060961853217217
+    },
+    "14": {
+      "objective": "l1",
+      "learning_rate": 0.011780777378671161,
+      "n_estimators": 250,
+      "num_leaves": 8,
+      "min_child_samples": 181,
+      "subsample": 0.8287587074739028,
+      "colsample_bytree": 0.9424711944079319,
+      "reg_lambda": 0.0011174384154098692
+    }
+  },
+  "data_sampai": "2026-10-15",
+  "dipilih_di": "notebooks/pemodelan.ipynb S3.6 (validasi silang 4 lipatan)"
+}

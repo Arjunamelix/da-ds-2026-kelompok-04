@@ -416,7 +416,9 @@ ml/
 │   ├── pipeline.py         alur lengkap: baca data, fitur, latih, evaluasi, tulis hasil
 │   ├── fitur.py            deret harian dan fitur model (model per deret yang sedang berjalan)
 │   ├── fitur_global.py     fitur model gabungan hasil S2 (dipakai notebook, dan aplikasi mulai S6)
-│   ├── model.py            baseline naif dan model boosting
+│   ├── model.py            baseline naif dan model boosting (model per deret yang sedang berjalan)
+│   ├── model_global.py     pembangun model gabungan S3: Ridge, Random Forest, HistGradientBoosting, LightGBM
+│   ├── validasi_global.py  validasi silang 4 lipatan waktu untuk model gabungan
 │   ├── evaluasi.py         evaluasi walk-forward: MAE, RMSE, MAPE vs baseline
 │   ├── status.py           status Normal / Waspada / Lonjakan dan evaluasinya
 │   ├── kalender.py         daftar hari besar dan periode Ramadan (ketetapan pemerintah)
@@ -426,6 +428,7 @@ ml/
     ├── conftest.py               data uji sintetis
     ├── test_fitur.py
     ├── test_fitur_global.py      termasuk cek tanpa kebocoran data
+    ├── test_model_global.py
     ├── test_evaluasi_status.py
     └── test_pipeline_api.py
 ```
@@ -484,7 +487,7 @@ scripts/
 └── gen_data_dev.py         pembuat data sintetis uji
 
 notebooks/
-└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 dan S2 sudah ada)
+└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sampai S3 sudah ada)
 ```
 
 ### 6.7 `docs/` (dokumentasi)
@@ -501,7 +504,10 @@ docs/
 ├── logbook.md              catatan kerja mingguan
 ├── model/
 │   ├── S1_problem_framing.md       ringkasan problem framing (S1)
-│   └── S2_feature_engineering.md   ringkasan preprocessing dan feature engineering (S2)
+│   ├── S2_feature_engineering.md   ringkasan preprocessing dan feature engineering (S2)
+│   ├── S3_pemodelan.md             ringkasan pemodelan, tuning, dan pemilihan model (S3)
+│   ├── s3_tuning.csv               semua percobaan tuning Optuna (S3)
+│   └── s3_terpilih.json            konfigurasi model terpilih (dipakai S4 dan S6)
 └── laporan/                laporan akhir dan bahan presentasi
 ```
 
@@ -512,12 +518,13 @@ Tes **tidak** berjalan di Docker; ia butuh alat masing-masing di laptop (hanya b
 | Bagian | Syarat | Perintah |
 |---|---|---|
 | Frontend | Node.js 20+ | `cd frontend && npm install && npm test` |
-| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **23 lulus**) |
+| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **31 lulus**; tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
 | Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` |
 | Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` (harus **34 lulus**) |
 | Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest scripts/test_aturan_bersih.py -q` (harus **9 lulus**) |
 
 Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv/bin/activate`.
 
-Notebook `notebooks/pemodelan.ipynb` memakai venv ML yang sama ditambah dua paket: `pip install matplotlib ipykernel`.
-Buka di VS Code, pilih kernel `ml\.venv`, lalu **Run All** (sekitar 5–10 menit). Notebook hanya memakai data sampai 15 Oktober 2026.
+Notebook `notebooks/pemodelan.ipynb` memakai venv ML yang sama ditambah beberapa paket: `pip install matplotlib ipykernel lightgbm optuna`.
+Buka di VS Code, pilih kernel `ml\.venv`, lalu **Run All** (sekitar 10–15 menit). Notebook hanya memakai data sampai 15 Oktober 2026.
+Tuning S3 tidak dijalankan ulang (hasilnya dibaca dari `docs/model/s3_tuning.csv`) kecuali `JALANKAN_TUNING = True` (sekitar 30–40 menit tambahan).
