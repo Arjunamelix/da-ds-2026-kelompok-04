@@ -417,7 +417,7 @@ ml/
 │   ├── fitur.py            deret harian dan fitur model (model per deret yang sedang berjalan)
 │   ├── fitur_global.py     fitur model gabungan hasil S2 (dipakai notebook, dan aplikasi mulai S6)
 │   ├── model.py            baseline naif dan model boosting (model per deret yang sedang berjalan)
-│   ├── model_global.py     pembangun model gabungan S3: Ridge, Random Forest, HistGradientBoosting, LightGBM
+│   ├── model_global.py     pembangun model gabungan S3–S4: Linear Regression, Ridge, Random Forest, HistGradientBoosting, LightGBM
 │   ├── validasi_global.py  validasi silang 4 lipatan waktu untuk model gabungan
 │   ├── evaluasi.py         evaluasi walk-forward: MAE, RMSE, MAPE vs baseline
 │   ├── status.py           status Normal / Waspada / Lonjakan dan evaluasinya
@@ -487,7 +487,7 @@ scripts/
 └── gen_data_dev.py         pembuat data sintetis uji
 
 notebooks/
-└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sampai S3 sudah ada)
+└── pemodelan.ipynb         eksperimen pemodelan, disusun bertahap per komponen penilaian (S1 sampai S4 sudah ada)
 ```
 
 ### 6.7 `docs/` (dokumentasi)
@@ -507,7 +507,10 @@ docs/
 │   ├── S2_feature_engineering.md   ringkasan preprocessing dan feature engineering (S2)
 │   ├── S3_pemodelan.md             ringkasan pemodelan, tuning, dan pemilihan model (S3)
 │   ├── s3_tuning.csv               semua percobaan tuning Optuna (S3)
-│   └── s3_terpilih.json            konfigurasi model terpilih (dipakai S4 dan S6)
+│   ├── s3_terpilih.json            konfigurasi model terpilih (dipakai S4 dan S6)
+│   ├── S4_evaluasi.md              ringkasan evaluasi di data uji (S4)
+│   ├── s4_hasil_uji.csv            metrik semua model di data uji
+│   └── s4_keputusan.json           keputusan untuk aplikasi: model per kelompok, status, rentang 80% (dipakai S6)
 └── laporan/                laporan akhir dan bahan presentasi
 ```
 
@@ -518,7 +521,7 @@ Tes **tidak** berjalan di Docker; ia butuh alat masing-masing di laptop (hanya b
 | Bagian | Syarat | Perintah |
 |---|---|---|
 | Frontend | Node.js 20+ | `cd frontend && npm install && npm test` |
-| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **31 lulus**; tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
+| ML | Python 3.10+ | `cd ml && python -m venv .venv`, aktifkan venv, `pip install -r requirements.txt`, `pytest` (harus **32 lulus**; tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
 | Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` |
 | Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` (harus **34 lulus**) |
 | Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest scripts/test_aturan_bersih.py -q` (harus **9 lulus**) |
