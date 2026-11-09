@@ -10,15 +10,16 @@ import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from .fitur_global import KATEGORI
 
-ALGORITMA = ("ridge", "random_forest", "hist_gb", "lightgbm")
+ALGORITMA = ("linear_regression", "ridge", "random_forest", "hist_gb", "lightgbm")
 
 PARAM_BAWAAN = {
+    "linear_regression": {},
     "ridge": {"alpha": 1.0},
     "random_forest": {"n_estimators": 200, "max_depth": 12, "min_samples_leaf": 50, "max_features": 0.5, "max_samples": 0.5},
     "hist_gb": {"max_iter": 300, "learning_rate": 0.05, "max_leaf_nodes": 31, "min_samples_leaf": 50, "l2_regularization": 1.0},
@@ -32,12 +33,14 @@ def buat_model(nama: str, param: dict | None, kolom: list[str], seed: int = 42):
     p = {**PARAM_BAWAAN[nama], **(param or {})}
     kat = [c for c in kolom if c in KATEGORI]
     num = [c for c in kolom if c not in KATEGORI]
-    if nama == "ridge":
+    if nama in ("ridge", "linear_regression"):
         pra = ColumnTransformer([
             ("num", make_pipeline(SimpleImputer(strategy="median", add_indicator=True), StandardScaler()), num),
             ("kat", OneHotEncoder(handle_unknown="ignore"), kat),
         ])
-        return Pipeline([("pra", pra), ("model", Ridge(alpha=p["alpha"]))])
+        # Linear Regression murni = baseline panduan; one-hot lengkap + intercept diselesaikan lstsq (solusi norma minimum)
+        reg = Ridge(alpha=p["alpha"]) if nama == "ridge" else LinearRegression()
+        return Pipeline([("pra", pra), ("model", reg)])
     if nama == "random_forest":
         pra = ColumnTransformer([("num", SimpleImputer(strategy="median", add_indicator=True), num),
                                  ("kat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), kat)])

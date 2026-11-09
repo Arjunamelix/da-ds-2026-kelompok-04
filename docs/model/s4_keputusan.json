@@ -1,0 +1,86 @@
+{
+  "aturan": "S1: kelompok yang tidak mencapai kriteria minimum di data uji memakai baseline naif",
+  "per_kelompok": {
+    "bergejolak": "naif",
+    "stabil": "lightgbm"
+  },
+  "status": "aturan S1.7: Waspada/Lonjakan bila perubahan aktual 7 hari terakhir ATAU prediksi model terpilih melewati ambang",
+  "model": {
+    "algoritma": "lightgbm",
+    "strategi": "per_kelompok",
+    "fitur": [
+      "komoditas_kode",
+      "bergejolak",
+      "tingkat_kota",
+      "ret_3",
+      "ret_14",
+      "rasio_ma30",
+      "rasio_ma365",
+      "frac_berubah_28",
+      "hari_sejak_berubah",
+      "n_pasar",
+      "dispersi",
+      "selisih_kota",
+      "ret_7_kota"
+    ],
+    "seed": 42,
+    "kelompok_bergejolak": [
+      "cabai_merah",
+      "cabai_rawit",
+      "bawang_merah",
+      "daging_ayam_ras",
+      "bawang_putih"
+    ],
+    "param": {
+      "7": {
+        "objective": "l1",
+        "learning_rate": 0.01094684476594885,
+        "n_estimators": 450,
+        "num_leaves": 18,
+        "min_child_samples": 23,
+        "subsample": 0.7207808089240471,
+        "colsample_bytree": 0.9822244308900996,
+        "reg_lambda": 0.019060961853217217
+      },
+      "14": {
+        "objective": "l1",
+        "learning_rate": 0.011780777378671161,
+        "n_estimators": 250,
+        "num_leaves": 8,
+        "min_child_samples": 181,
+        "subsample": 0.8287587074739028,
+        "colsample_bytree": 0.9424711944079319,
+        "reg_lambda": 0.0011174384154098692
+      }
+    },
+    "data_sampai": "2026-10-15",
+    "dipilih_di": "notebooks/pemodelan.ipynb S3.6 (validasi silang 4 lipatan)"
+  },
+  "rentang_80": {
+    "7_bergejolak": [
+      -0.11336805577694511,
+      0.15728146423611014
+    ],
+    "7_stabil": [
+      -0.00011827002358171796,
+      0.0001523538895838501
+    ],
+    "14_bergejolak": [
+      -0.14098569615733159,
+      0.23664678593701327
+    ],
+    "14_stabil": [
+      -2.5877792653613655e-06,
+      0.0016500405728754072
+    ],
+    "7_bergejolak_naif": [
+      -0.13353139262452274,
+      0.15415067982725894
+    ],
+    "14_bergejolak_naif": [
+      -0.1823215567939549,
+      0.2324771363186855
+    ]
+  },
+  "dinilai_di": "data uji 1 Jul - 15 Okt 2026 (hari asal), notebooks/pemodelan.ipynb S4"
+}
