@@ -1,3 +1,19 @@
+/**
+ * ==============================================================================
+ * HALAMAN: TREN HARGA (Tren.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan grafik garis historis pergerakan harga komoditas pangan.
+ * - Memungkinkan perbandingan hingga 3 kecamatan secara bersamaan.
+ * - Menyediakan filter rentang waktu (30 hari, 90 hari, 6 bulan, 1 tahun, semua).
+ * - Menampilkan peta interaktif sebaran harga di Kota Medan.
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/tren?komoditas=...&kecamatan=...  (diatur di backend: internal/handler/tren.go)
+ * - GET /api/perbandingan?komoditas=...        (diatur di backend: internal/handler/perbandingan.go)
+ * ==============================================================================
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'

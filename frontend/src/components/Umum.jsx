@@ -1,3 +1,18 @@
+/**
+ * ==============================================================================
+ * KOMPONEN BERSAMA / REUSABLE UI (Umum.jsx)
+ * ==============================================================================
+ * Berisi komponen-komponen antarmuka yang dipakai berulang di berbagai halaman:
+ * - StatusBadge     : Lencana status (Normal, Waspada, Lonjakan) beserta ikon
+ * - Galat           : Kotak notifikasi pesan error/gagal
+ * - Memuat          : Indikator loading spinner / teks memuat data
+ * - Kosong          : Tampilan fallback saat data tidak tersedia
+ * - PilihKecamatan  : Komponen dropdown pemilihan kecamatan
+ * - PilihKomoditas  : Komponen dropdown pemilihan bahan pokok
+ * - KeteranganAcuan : Catatan kaki penjelasan batas acuan dan validasi
+ * ==============================================================================
+ */
+
 import { STATUS_IKON } from '../lib/format.js'
 
 export function StatusBadge({ status }) {

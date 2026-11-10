@@ -17,6 +17,7 @@ membandingkan antar kecamatan, memprediksi harga 7 dan 14 hari ke depan, dan mem
 4. [Memakai dashboard](#4-memakai-dashboard)
 5. [Tentang data](#5-tentang-data)
 6. [Struktur proyek](#6-struktur-proyek)
+   - [6.8 Catatan Pembaruan Struktur (Before vs After)](#68-catatan-pembaruan-struktur-before-vs-after)
 7. [Menjalankan tes](#7-menjalankan-tes)
 
 ---
@@ -379,7 +380,12 @@ backend/
 │   │   ├── config.go       pengaturan dari variabel lingkungan dan referensi.json
 │   │   └── config_test.go
 │   ├── handler/
-│   │   ├── handler.go      rute dan endpoint HTTP /api
+│   │   ├── handler.go      perakitan router dan middleware HTTP /api
+│   │   ├── harga.go        CRUD data harga, impor, ekspor, dan template CSV
+│   │   ├── ringkasan.go    ringkasan kartu metrik dashboard utama
+│   │   ├── tren.go         deret waktu harga untuk grafik halaman tren
+│   │   ├── perbandingan.go perbandingan harga komoditas antar-kecamatan
+│   │   ├── prediksi.go     prediksi harga, status, evaluasi, dan picu retrain ML
 │   │   ├── analitik_wh.go  endpoint /api/analitik/* (KPI, peta panas, sebaran, wilayah, deret, statistik)
 │   │   ├── scraper.go      endpoint /api/scraper/status dan /api/scraper/jalankan (diteruskan ke layanan scraper)
 │   │   └── scraper_test.go
@@ -494,10 +500,7 @@ notebooks/
 
 ```
 docs/
-├── PANDUAN_SETUP.md        panduan setup langkah demi langkah
 ├── kontrak_api.md          daftar endpoint API dan formatnya
-├── alur_data_dev.md        alur data dari mentah sampai database
-├── hasil_cek_sumber.md     hasil pengecekan sumber data
 ├── kualitas_data.md        laporan kualitas data sebelum dan sesudah pembersihan (dibuat laporan_kualitas.py)
 ├── warehouse.md            skema bintang, ERD, contoh query
 ├── visualisasi.md          daftar visual dan interaktivitas dashboard
@@ -513,6 +516,20 @@ docs/
 │   └── s4_keputusan.json           keputusan untuk aplikasi: model per kelompok, status, rentang 80% (dipakai S6)
 └── laporan/                laporan akhir dan bahan presentasi
 ```
+
+### 6.8 Catatan Pembaruan Struktur (Before vs After)
+
+Untuk meningkatkan kemudahan navigasi, kejelasan kode, dan keterbacaan proyek bagi seluruh anggota tim, telah dilakukan restrukturisasi berkas tanpa mengubah satupun fungsi, kontrak API, maupun logika komputasi yang ada:
+
+| Komponen | Sebelum Pembaruan (Before) | Sesudah Pembaruan (After) | Alasan & Manfaat |
+|---|---|---|---|
+| **Backend Handler** | Semua rute dan handler API (`/harga`, `/ringkasan`, `/tren`, `/perbandingan`, `/prediksi`, `/status`, `/retrain`) menumpuk di **satu file tunggal** `handler.go` (404 baris). | Dipecah menjadi berkas modular per fitur: `harga.go`, `ringkasan.go`, `tren.go`, `perbandingan.go`, `prediksi.go`, dan `handler.go` (khusus routing). | Saat ingin mengubah logika fitur tertentu (misal: tren), anggota tim langsung menuju `tren.go` tanpa perlu scroll file panjang. Semuanya tetap di `package handler` sehingga bebas error import. |
+| **Dokumentasi Frontend** | File halaman di `frontend/src/pages/` langsung dimulai dengan kode tanpa keterangan tujuan halaman. | Setiap file halaman (`Dashboard.jsx`, `Tren.jsx`, `Perbandingan.jsx`, `Prediksi.jsx`, `KelolaData.jsx`, `Analisis.jsx`, `Cerita.jsx`) dilengkapi header JSDoc standar. | Anggota tim langsung paham fungsi halaman, komponen UI yang dipakai, dan endpoint API backend yang dihubungi saat membuka file. |
+| **Dokumentasi Redundan** | Ada file `docs/PANDUAN_SETUP.md` (isinya duplikat `README.md`), serta `docs/alur_data_dev.md` & `docs/hasil_cek_sumber.md` (catatan hari pertama yang sudah usang). | File redundan dihapus; seluruh panduan setup dipusatkan di `README.md`, dan kualitas data dipusatkan di `docs/kualitas_data.md`. | Mengurangi kebingungan panduan mana yang harus diikuti (*single source of truth*). |
+| **Kebersihan Git & Cache** | Folder build `frontend/dist/` dan cache `ml/.pytest_cache/` sempat tertinggal di lokal. | Dibersihkan dari disk lokal dan ditambahkan ke `.gitignore`. | Menghindari commit berkas sampah build yang bisa memperberat ukuran repositori. |
+| **Fleksibilitas Port Backend** | Port backend di `docker-compose.yml` terkunci di `127.0.0.1:8080:8080`. | Menggunakan `127.0.0.1:${BACKEND_HOST_PORT:-8080}:8080`. | Anggota tim bawaan tetap memakai port `8080`, namun bagi anggota tim yang memiliki konflik port lokal (misalnya servis bawaan laptop di 8080) dapat mengatur `BACKEND_HOST_PORT` di `.env` tanpa mengubah git. |
+
+---
 
 ## 7. Menjalankan tes
 

@@ -1,3 +1,21 @@
+/**
+ * ==============================================================================
+ * HALAMAN: KELOLA DATA & STATUS PIPELINE (KelolaData.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan tabel data harga harian beserta filter dan pagination.
+ * - Formulir tambah, ubah, dan hapus harga (CRUD).
+ * - Impor & Ekspor berkas CSV.
+ * - Monitoring scraper otomatis (SIMPANG & SP2KP) dan tombol picu penarikan data baru.
+ * - Memantau status proses retraining model Machine Learning.
+ *
+ * Endpoint API yang digunakan:
+ * - GET/POST/PUT/DELETE /api/harga (diatur di backend: internal/handler/harga.go)
+ * - GET/POST /api/scraper/*        (diatur di backend: internal/handler/scraper.go)
+ * - GET/POST /api/retrain          (diatur di backend: internal/handler/prediksi.go)
+ * ==============================================================================
+ */
+
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'

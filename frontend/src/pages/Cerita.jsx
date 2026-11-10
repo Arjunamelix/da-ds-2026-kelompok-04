@@ -1,3 +1,16 @@
+/**
+ * ==============================================================================
+ * HALAMAN: DATA STORYTELLING & INSIGHTS (Cerita.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan narasi data science dan wawasan analitik (5 temuan utama harga pangan di Medan).
+ * - Menghubungkan temuan data dengan implikasi kebijakan bagi pemerintah dan warga.
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/wh/* (diatur di backend: internal/handler/analitik_wh.go)
+ * ==============================================================================
+ */
+
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client.js'

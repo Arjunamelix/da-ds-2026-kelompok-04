@@ -1,3 +1,17 @@
+/**
+ * ==============================================================================
+ * HALAMAN: PERBANDINGAN WILAYAH (Perbandingan.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan grafik batang harga komoditas di seluruh 21 kecamatan Kota Medan.
+ * - Menghitung selisih harga tiap kecamatan terhadap harga acuan Kota Medan.
+ * - Mengidentifikasi kecamatan dengan harga tertinggi dan terendah.
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/perbandingan?komoditas=... (diatur di backend: internal/handler/perbandingan.go)
+ * ==============================================================================
+ */
+
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'

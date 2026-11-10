@@ -1,3 +1,19 @@
+/**
+ * ==============================================================================
+ * HALAMAN: DASHBOARD UTAMA (Dashboard.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan ringkasan kartu komoditas pangan untuk Kota Medan atau kecamatan terpilih.
+ * - Menampilkan panel KPI (stok/harga/pergerakan) dari data warehouse.
+ * - Menampilkan harga terakhir, perubahan 7 hari, status harga (Normal/Waspada/Lonjakan),
+ *   dan estimasi prediksi 7 hari ke depan.
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/ringkasan?kecamatan=...   (diatur di backend: internal/handler/ringkasan.go)
+ * - GET /api/wh/kpi-hari-ini           (diatur di backend: internal/handler/analitik_wh.go)
+ * ==============================================================================
+ */
+
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'

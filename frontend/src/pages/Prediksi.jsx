@@ -1,3 +1,19 @@
+/**
+ * ==============================================================================
+ * HALAMAN: PREDIKSI HARGA & STATUS (Prediksi.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Menampilkan grafik proyeksi harga masa depan (horizon 7 & 14 hari) lengkap dengan rentang keyakinan 80%.
+ * - Menampilkan status komoditas (Normal / Waspada / Lonjakan).
+ * - Menampilkan tabel evaluasi performa model Machine Learning (MAE, MAPE, RMSE vs Baseline).
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/prediksi?komoditas=...&kecamatan=... (diatur di backend: internal/handler/prediksi.go)
+ * - GET /api/status?kecamatan=...                 (diatur di backend: internal/handler/prediksi.go)
+ * - GET /api/evaluasi?komoditas=...               (diatur di backend: internal/handler/prediksi.go)
+ * ==============================================================================
+ */
+
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Area, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'

@@ -1,3 +1,17 @@
+/**
+ * ==============================================================================
+ * HALAMAN: ANALISIS VISUALISASI MENDALAM (Analisis.jsx)
+ * ==============================================================================
+ * Fungsi:
+ * - Visualisasi eksploratif Data Analytics tingkat lanjut.
+ * - Berisi Heatmap korelasi/anomali, BoxPlot sebaran harga, SmallMultiples,
+ *   dan Treemap sebaran pasar di wilayah Kota Medan.
+ *
+ * Endpoint API yang digunakan:
+ * - GET /api/wh/* (diatur di backend: internal/handler/analitik_wh.go)
+ * ==============================================================================
+ */
+
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client.js'
