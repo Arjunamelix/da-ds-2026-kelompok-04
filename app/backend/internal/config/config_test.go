@@ -4,7 +4,7 @@ import "testing"
 
 func muat(t *testing.T) *Referensi {
 	t.Helper()
-	r, err := LoadReferensi("../../../config/referensi.json")
+	r, err := LoadReferensi("../../../../config/referensi.json")
 	if err != nil {
 		t.Fatalf("LoadReferensi: %v", err)
 	}

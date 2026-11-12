@@ -14,7 +14,7 @@ Aturan (Project.md 5.3 dan 5.4):
   Ambang dapat diubah (--ambang-menyimpang) atau dimatikan (--ambang-menyimpang 0).
 
 Pemakaian:
-  python scripts/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
+  python etl/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
 """
 from __future__ import annotations
 

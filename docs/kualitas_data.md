@@ -1,6 +1,6 @@
 # Laporan kualitas data
 
-Dibuat otomatis oleh `scripts/laporan_kualitas.py` dari `data/raw/master_data_harian.csv` dan hasil `scripts/etl_master.py`. Jangan diedit manual; jalankan ulang skripnya bila data berubah.
+Dibuat otomatis oleh `etl/laporan_kualitas.py` dari `data/raw/master_data_harian.csv` dan hasil `etl/etl_master.py`. Jangan diedit manual; jalankan ulang skripnya bila data berubah.
 
 ## Ringkasan sebelum dan sesudah
 

@@ -1,6 +1,6 @@
 package handler
 
-// Endpoint layanan scraper (pengambil data harga otomatis dari SIMPANG, folder scraper/ di repo).
+// Endpoint layanan scraper (pengambil data harga otomatis dari SIMPANG, folder app/scraper/ di repo).
 // Backend hanya meneruskan permintaan ke service scraper di jaringan Docker (SCRAPER_URL);
 // frontend tidak pernah berbicara langsung dengan scraper, sama seperti dengan layanan ML.
 //

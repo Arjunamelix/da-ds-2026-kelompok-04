@@ -7,8 +7,8 @@ Menghasilkan CSV 6 kolom (format impor) di data/dev/harga_dev.csv. Data ini BUKA
 - harus dihapus dari database sebelum data asli dimuat dan model dilatih sungguhan.
 
 Pemakaian:
-    python scripts/gen_data_dev.py                       # 2024-01-01 s.d. hari ini
-    python scripts/gen_data_dev.py --sampai 2026-10-20 --seed 7
+    python etl/gen_data_dev.py                       # 2024-01-01 s.d. hari ini
+    python etl/gen_data_dev.py --sampai 2026-10-20 --seed 7
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ PARAM = {
     "daging_sapi": (130000, 0.003, 0.01, 0.04, 0.03),
 }
 
-# Perkiraan hari besar (sama dengan ml/app/kalender.py) untuk lonjakan musiman buatan.
+# Perkiraan hari besar (sama dengan app/ml/app/kalender.py) untuk lonjakan musiman buatan.
 HARI_BESAR = [
     "2024-03-11", "2024-04-10", "2024-06-17", "2024-12-25",
     "2025-03-01", "2025-03-31", "2025-06-06", "2025-12-25",

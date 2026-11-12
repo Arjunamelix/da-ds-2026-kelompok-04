@@ -288,7 +288,7 @@ export default function PetaMedan({ dataPerbandingan, namaKomoditas, kecamatanTe
         {statusPeta.galat && (
           <div className="peta-error-overlay">
             <p>⚠️ {statusPeta.galat}</p>
-            <small>Silakan periksa konfigurasi API Key Google Maps pada file frontend/.env</small>
+            <small>Silakan periksa konfigurasi API Key Google Maps pada file app/frontend/.env</small>
           </div>
         )}
 

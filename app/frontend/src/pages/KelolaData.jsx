@@ -580,7 +580,7 @@ function TagStatus({ status }) {
   return <span className={'tag ' + l.kelas}>{l.teks}</span>
 }
 
-// Pengambilan data otomatis dari SIMPANG (layanan scraper/): status, tombol tarik sekarang, riwayat.
+// Pengambilan data otomatis dari SIMPANG (layanan app/scraper/): status, tombol tarik sekarang, riwayat.
 function TabOtomatis() {
   const { scraper, galatScraper, segarkanScraper, ambilDataSekarang } = useApp()
   const [kirim, setKirim] = useState(false)

@@ -1,8 +1,8 @@
 """Laporan kualitas data sebelum dan sesudah pembersihan (panduan 4.1: completeness, validity, consistency, uniqueness).
 
-Membaca data mentah dan hasil scripts/etl_master.py, lalu menulis docs/kualitas_data.md.
+Membaca data mentah dan hasil etl/etl_master.py, lalu menulis docs/kualitas_data.md.
 Jalankan setelah etl_master.py:
-  python scripts/laporan_kualitas.py
+  python etl/laporan_kualitas.py
 """
 from pathlib import Path
 
@@ -53,8 +53,8 @@ def main():
 
     L = []
     L.append("# Laporan kualitas data\n")
-    L.append("Dibuat otomatis oleh `scripts/laporan_kualitas.py` dari `data/raw/master_data_harian.csv` "
-             "dan hasil `scripts/etl_master.py`. Jangan diedit manual; jalankan ulang skripnya bila data berubah.\n")
+    L.append("Dibuat otomatis oleh `etl/laporan_kualitas.py` dari `data/raw/master_data_harian.csv` "
+             "dan hasil `etl/etl_master.py`. Jangan diedit manual; jalankan ulang skripnya bila data berubah.\n")
     L.append("## Ringkasan sebelum dan sesudah\n")
     L.append("| Dimensi | Ukuran | Sebelum (mentah) | Sesudah (bersih) |")
     L.append("|---|---|---|---|")
