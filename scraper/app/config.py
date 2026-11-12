@@ -33,8 +33,8 @@ DATA_DIR = Path(os.getenv("DATA_DIR", "data"))
 MASTER = DATA_DIR / "raw" / "master_data_harian.csv"
 DIR_OTOMATIS = DATA_DIR / "raw" / "otomatis"          # respons mentah per tarikan + riwayat_tarikan.jsonl
 
-# Lokasi scripts/aturan_bersih.py (di Docker: ./scripts dipasang ke /app/scripts)
-SCRIPTS_DIR = Path(os.getenv("SCRIPTS_DIR", "scripts"))
+# Lokasi etl/aturan_bersih.py (di Docker: ./etl dipasang ke /app/etl)
+SCRIPTS_DIR = Path(os.getenv("SCRIPTS_DIR", "etl"))
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
 

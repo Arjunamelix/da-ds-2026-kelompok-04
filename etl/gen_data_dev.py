@@ -7,8 +7,8 @@ Menghasilkan CSV 6 kolom (format impor) di data/dev/harga_dev.csv. Data ini BUKA
 - harus dihapus dari database sebelum data asli dimuat dan model dilatih sungguhan.
 
 Pemakaian:
-    python scripts/gen_data_dev.py                       # 2024-01-01 s.d. hari ini
-    python scripts/gen_data_dev.py --sampai 2026-10-20 --seed 7
+    python etl/gen_data_dev.py                       # 2024-01-01 s.d. hari ini
+    python etl/gen_data_dev.py --sampai 2026-10-20 --seed 7
 """
 from __future__ import annotations
 

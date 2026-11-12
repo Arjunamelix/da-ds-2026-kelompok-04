@@ -7,7 +7,7 @@ Keluaran: satu CSV per sumber, siap impor ke POST /api/harga/import:
             <out>/harga_harian_sp2kp.csv
           dan <out>/master_ditolak.csv (baris yang dibuang beserta alasannya).
 
-Aturan pembersihan ada di scripts/aturan_bersih.py (dipakai juga oleh pengumpul data otomatis):
+Aturan pembersihan ada di etl/aturan_bersih.py (dipakai juga oleh pengumpul data otomatis):
   1. Nama komoditas, sumber, dan pasar dibakukan; spasi di tepi dibuang.
   2. Komoditas yang isinya salinan persis komoditas lain dibuang (kesalahan scraping).
   3. Harga 0 dibuang (tidak ada data hari itu).
@@ -18,9 +18,9 @@ Aturan pembersihan ada di scripts/aturan_bersih.py (dipakai juga oleh pengumpul 
 Deret tidak pernah dicampur antar-sumber: aturan 5 dihitung per sumber.
 
 Pemakaian:
-  python scripts/etl_master.py            (atau tombol Run di VS Code; memakai berkas bawaan)
-  python scripts/etl_master.py data/raw/master_data_harian.csv
-  python scripts/etl_master.py data/raw/master_data_harian.csv --out-dir data/processed --ambang-menyimpang 0.4 --min-pasar 5
+  python etl/etl_master.py            (atau tombol Run di VS Code; memakai berkas bawaan)
+  python etl/etl_master.py data/raw/master_data_harian.csv
+  python etl/etl_master.py data/raw/master_data_harian.csv --out-dir data/processed --ambang-menyimpang 0.4 --min-pasar 5
 """
 import argparse
 import sys

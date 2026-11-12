@@ -17,16 +17,16 @@ ps:
 	docker compose ps
 
 etl:           ## ubah data mentah SIMPANG (data/raw/simpang/) menjadi CSV 6 kolom (data/processed/)
-	python3 scripts/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
+	python3 etl/etl_simpang.py data/raw/simpang/data_harian_simpang_medan.csv
 
 import-data:    ## impor data SIMPANG hasil ETL lewat API (aman diulang, tidak membuat duplikat)
-	python3 scripts/impor_csv.py data/processed/harga_harian_simpang.csv
+	python3 etl/impor_csv.py data/processed/harga_harian_simpang.csv
 
 dev-data:      ## bangkitkan data sintetis (sumber DEV) ke data/dev/harga_dev.csv
-	python3 scripts/gen_data_dev.py
+	python3 etl/gen_data_dev.py
 
 import-dev:    ## impor data sintetis lewat API (jalur yang sama dengan impor CSV asli)
-	python3 scripts/impor_csv.py data/dev/harga_dev.csv
+	python3 etl/impor_csv.py data/dev/harga_dev.csv
 
 psql:
 	docker compose exec db psql -U $${POSTGRES_USER:-pangan} -d $${POSTGRES_DB:-harga_pangan}

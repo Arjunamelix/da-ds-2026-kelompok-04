@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Impor CSV 6 kolom lewat API Go (POST /api/harga/import). Hanya memakai pustaka standar.
 
-    python scripts/impor_csv.py data/dev/harga_dev.csv
-    python scripts/impor_csv.py data/processed/harga_harian.csv --api http://localhost:8080
+    python etl/impor_csv.py data/dev/harga_dev.csv
+    python etl/impor_csv.py data/processed/harga_harian.csv --api http://localhost:8080
 
 Aman dijalankan berulang: baris yang sudah ada dilewati (idempotent).
 """

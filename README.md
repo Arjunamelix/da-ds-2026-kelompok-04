@@ -58,7 +58,7 @@ Tabel di database dibuat otomatis oleh backend (migrasi) saat pertama kali menya
 
 1. **Ambil.** Scraper membaca halaman peta harga SIMPANG.
 2. **Arsip.** Data mentah disimpan ke `data/raw/otomatis/`, dan baris baru ditambahkan ke `master_data_harian.csv`. Master menyimpan **termasuk harga 0**.
-3. **Bersihkan.** Aturan di `scripts/aturan_bersih.py` dipakai. Harga 0 dibuang.
+3. **Bersihkan.** Aturan di `etl/aturan_bersih.py` dipakai. Harga 0 dibuang.
 4. **Tahan.** Tanggal yang dilaporkan kurang dari 15 pasar belum diimpor.
 5. **Impor.** Data dikirim lewat `POST /api/harga/import`.
 6. **Simpan.** Data masuk tabel `harga`. Kunci unik mencegah duplikat.
@@ -146,7 +146,7 @@ Status mengikuti komponen penilaian di panduan dosen (*Deskripsi Proyek Data Ana
 
 Catatan:
 - **Windows:** Docker Desktop butuh WSL 2. Buka Docker Desktop dulu dan tunggu status **"Engine running"** sebelum menjalankan perintah `docker`.
-- Python hanya dipakai untuk skrip di `scripts/`, tes, dan notebook. Untuk mengolah data mentah cukup `pip install pandas`.
+- Python hanya dipakai untuk skrip di `etl/`, tes, dan notebook. Untuk mengolah data mentah cukup `pip install pandas`.
 - Go, Node.js, dan PostgreSQL **tidak** perlu dipasang, kecuali ingin mengembangkan kode tanpa Docker.
 - Repo ini privat. Minta pemilik repo (Arjunamelix) menambahkan akun GitHub-mu sebagai kolaborator.
 
@@ -224,7 +224,7 @@ Data mentah gabungan SIMPANG dan SP2KP ada di `data/raw/master_data_harian.csv`.
 
 ```bash
 pip install pandas
-python scripts/etl_master.py
+python etl/etl_master.py
 ```
 
 Di macOS/Linux pakai `python3`. Tanpa argumen, skrip membaca `data/raw/master_data_harian.csv` dan menulis ke `data/processed/`.
@@ -248,8 +248,8 @@ Hasilnya tiga berkas di `data/processed/`:
 ### Langkah 6. Impor data ke database
 
 ```bash
-python scripts/impor_csv.py data/processed/harga_harian_simpang.csv
-python scripts/impor_csv.py data/processed/harga_harian_sp2kp.csv
+python etl/impor_csv.py data/processed/harga_harian_simpang.csv
+python etl/impor_csv.py data/processed/harga_harian_sp2kp.csv
 ```
 
 Hasil pada database kosong (master per 15 Oktober 2026):
@@ -289,9 +289,9 @@ Mulai sekarang data baru masuk sendiri lewat layanan `scraper`. Langkah 5 dan 6 
 > ```bash
 > docker compose up --build -d
 > pip install pandas
-> python scripts/etl_master.py
-> python scripts/impor_csv.py data/processed/harga_harian_simpang.csv
-> python scripts/impor_csv.py data/processed/harga_harian_sp2kp.csv
+> python etl/etl_master.py
+> python etl/impor_csv.py data/processed/harga_harian_simpang.csv
+> python etl/impor_csv.py data/processed/harga_harian_sp2kp.csv
 > ```
 > Lalu tunggu model selesai dan buka http://localhost:3000.
 
@@ -390,7 +390,7 @@ Semua data digabung dalam satu berkas mentah `data/raw/master_data_harian.csv`. 
 
 ### 6.2 Aturan pembersihan
 
-Aturannya di `scripts/aturan_bersih.py`, dipakai oleh `etl_master.py` dan scraper, dan dijalankan berurutan:
+Aturannya di `etl/aturan_bersih.py`, dipakai oleh `etl_master.py` dan scraper, dan dijalankan berurutan:
 
 1. Nama komoditas, sumber, dan pasar dibakukan (mis. `pusat pasar` di SP2KP menjadi `Pusat Pasar`).
 2. Komoditas yang isinya salinan persis komoditas lain dibuang otomatis (pernah terjadi: telur hasil scraping lama identik dengan daging sapi).
@@ -399,7 +399,7 @@ Aturannya di `scripts/aturan_bersih.py`, dipakai oleh `etl_master.py` dan scrape
 5. Harga di luar batas wajar komoditas (`config/referensi.json`) ditolak.
 6. Harga yang menyimpang lebih dari 40% dari median pasar lain pada hari, komoditas, dan sumber yang sama (bila minimal 5 pasar melapor) ditolak sebagai dugaan salah input.
 
-Laporan kualitas sebelum dan sesudah pembersihan ada di `docs/kualitas_data.md` (dibuat oleh `scripts/laporan_kualitas.py`). Contohnya, kelengkapan naik dari 53,2% menjadi 100%, dan ejaan nama pasar dari 23 menjadi 21 nama baku.
+Laporan kualitas sebelum dan sesudah pembersihan ada di `docs/kualitas_data.md` (dibuat oleh `etl/laporan_kualitas.py`). Contohnya, kelengkapan naik dari 53,2% menjadi 100%, dan ejaan nama pasar dari 23 menjadi 21 nama baku.
 
 ### 6.3 Batasan data
 
@@ -410,7 +410,7 @@ Laporan kualitas sebelum dan sesudah pembersihan ada di `docs/kualitas_data.md` 
 - Jenis beras (medium) dan satuan susu bubuk (kemasan 400 g) masih asumsi yang perlu dikonfirmasi.
 - Kemungkinan anomali bawang merah 6 September 2024 (kejadian serentak di banyak pasar), diperiksa di S5.
 
-Data sintetis (`python scripts/gen_data_dev.py`) hanya untuk menguji aplikasi dan **tidak boleh dipakai di laporan**.
+Data sintetis (`python etl/gen_data_dev.py`) hanya untuk menguji aplikasi dan **tidak boleh dipakai di laporan**.
 
 ### 6.4 Data baru otomatis (layanan `scraper`)
 
@@ -421,7 +421,7 @@ Data sintetis (`python scripts/gen_data_dev.py`) hanya untuk menguji aplikasi da
 - **Apa yang diambil:** 12 komoditas di 21 pasar dari halaman peta harga SIMPANG (`?menu=peta`), satu permintaan per komoditas per tanggal.
   - Rentangnya dari 7 hari sebelum tanggal terakhir di database sampai hari ini, supaya harga yang diunggah terlambat ikut terisi.
   - SP2KP belum diambil otomatis karena ID pasar SP2KP belum lengkap.
-- **Alur:** ambil → simpan mentah ke `data/raw/otomatis/` → tambahkan ke `master_data_harian.csv` → bersihkan dengan `scripts/aturan_bersih.py` → impor lewat backend → model dilatih ulang otomatis.
+- **Alur:** ambil → simpan mentah ke `data/raw/otomatis/` → tambahkan ke `master_data_harian.csv` → bersihkan dengan `etl/aturan_bersih.py` → impor lewat backend → model dilatih ulang otomatis.
 - **Tanpa duplikat:** master dan database memakai kunci yang sama (`tanggal, kecamatan, nama_pasar, komoditas, sumber`). Harga yang tadinya 0 lalu diunggah belakangan akan diisi (`diisi_dari_0`).
 - **Hari belum lengkap ditahan:** tanggal dengan kurang dari 15 pasar melapor tidak diimpor dulu, dan diimpor di tarikan berikutnya.
 - **Etika akses:**
@@ -582,7 +582,7 @@ docker compose exec db psql -U pangan -d harga_pangan -c "SELECT pg_size_pretty(
 
 ## 9. Struktur proyek
 
-Lima layanan aplikasi (`frontend`, `backend`, `ml`, `scraper`, `db`) dijalankan oleh `docker-compose.yml`. Folder `config/`, `data/`, `scripts/`, `notebooks/`, dan `docs/` berisi referensi, data, skrip olah data, eksperimen model, dan dokumentasi.
+Lima layanan aplikasi (`frontend`, `backend`, `ml`, `scraper`, `db`) dijalankan oleh `docker-compose.yml`. Folder `config/`, `data/`, `etl/`, `notebooks/`, dan `docs/` berisi referensi, data, skrip olah data, eksperimen model, dan dokumentasi.
 
 | Folder | Isi | Dipakai oleh |
 |---|---|---|
@@ -592,7 +592,7 @@ Lima layanan aplikasi (`frontend`, `backend`, `ml`, `scraper`, `db`) dijalankan 
 | `scraper/` | Pengambilan data harga otomatis dari SIMPANG (Python FastAPI) | layanan `scraper` |
 | `config/` | Referensi kecamatan, pasar, komoditas, dan batas harga | `backend`, `ml`, `scripts` |
 | `data/` | Data mentah, data bersih hasil ETL, data uji | `scripts`, `notebooks` |
-| `scripts/` | Skrip olah data yang dijalankan manual, dan aturan pembersihan bersama | pengguna, `scraper` |
+| `etl/` | Skrip olah data yang dijalankan manual, dan aturan pembersihan bersama | pengguna, `scraper` |
 | `notebooks/` | Notebook pemodelan | pengguna (Jupyter / VS Code) |
 | `docs/` | Dokumentasi data, aplikasi, model, laporan, logbook | pengguna, dosen |
 
@@ -601,7 +601,7 @@ Padanan dengan struktur yang diminta panduan (bagian 6), tanpa mengubah folder:
 | Diminta panduan | Padanan di repo |
 |---|---|
 | `data/` | `data/` |
-| `etl/` | `scripts/` (`etl_master.py`, `aturan_bersih.py`, `impor_csv.py`) dan `backend/migrations/000003_warehouse.up.sql` |
+| `etl/` | `etl/` (`etl_master.py`, `aturan_bersih.py`, `impor_csv.py`) dan `backend/migrations/000003_warehouse.up.sql` |
 | `notebooks/` | `notebooks/pemodelan.ipynb` |
 | `app/` | `frontend/`, `backend/`, `ml/`, `scraper/` |
 | `models/` | **Belum ada**; dibuat di S6 untuk berkas model joblib |
@@ -615,7 +615,7 @@ Dasi_Dalis_04/
 ├── docker-compose.yml      menjalankan db + backend + ml + scraper + frontend
 ├── .env.example            contoh pengaturan; salin menjadi .env (tidak ikut di-commit)
 ├── .gitignore              daftar berkas yang tidak ikut di-commit (.env, node_modules, .venv, data/processed, data/dev, data/raw/otomatis)
-├── .vscode/settings.json   pengaturan VS Code: folder scripts/ dikenali Pylance
+├── .vscode/settings.json   pengaturan VS Code: folder etl/ dikenali Pylance
 └── Makefile                pintasan perintah (macOS/Linux)
 ```
 
@@ -766,7 +766,7 @@ scraper/
     └── test_tarikan.py
 ```
 
-### 9.6 `config/`, `data/`, `scripts/`, `notebooks/`
+### 9.6 `config/`, `data/`, `etl/`, `notebooks/`
 
 ```
 config/
@@ -785,7 +785,7 @@ data/
 │   └── master_ditolak.csv        baris yang dibuang beserta alasannya
 └── dev/                    data sintetis untuk uji (tidak ikut di-commit, jangan dipakai di laporan)
 
-scripts/
+etl/
 ├── etl_master.py           ETL utama: master_data_harian.csv → data/processed/
 ├── aturan_bersih.py        aturan pembersihan dan penggabungan ke master, dipakai etl_master.py dan scraper
 ├── test_aturan_bersih.py   tes aturan_bersih.py
@@ -844,7 +844,7 @@ Tes **tidak** berjalan di Docker; butuh alat masing-masing di laptop.
 | ML | Python 3.10+ | `cd ml`, buat dan aktifkan venv, `pip install -r requirements.txt`, `pytest` | **32 lulus** (tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
 | Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` | semua lulus |
 | Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` | **34 lulus** |
-| Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest scripts/test_aturan_bersih.py -q` | **9 lulus** |
+| Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest etl/test_aturan_bersih.py -q` | **9 lulus** |
 
 Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv/bin/activate`.
 
@@ -867,7 +867,7 @@ Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv
 | Master CSV bertambah, database "baris baru 0" | Baris harga 0 (pasar belum mengunggah) | Normal; tarikan berikutnya mengisinya |
 | Peringatan git "LF will be replaced by CRLF" pada master CSV | Scraper (Linux) menulis LF, git di Windows memakai CRLF | Tidak merusak data. Tambahkan `.gitattributes` berisi `*.csv text eol=lf` |
 | `git pull` bentrok di master CSV | Lebih dari satu laptop menulis master | Hanya satu laptop `SCRAPER_TULIS_MASTER=1` |
-| Pylance: import `aturan_bersih` atau `app` tidak dikenali | VS Code tidak tahu folder `scripts/` dan `ml/` | `.vscode/settings.json` berisi `"python.analysis.extraPaths": ["scripts", "ml"]`, lalu Reload Window |
+| Pylance: import `aturan_bersih` atau `app` tidak dikenali | VS Code tidak tahu folder `etl/` dan `ml/` | `.vscode/settings.json` berisi `"python.analysis.extraPaths": ["scripts", "ml"]`, lalu Reload Window |
 | pytest: `import file mismatch` | Sisa cache dari berkas yang dipindah | Hapus `__pycache__` dan `.pytest_cache` |
 | Jumlah tes lulus kurang / tes tidak ditemukan | Berkas tes tersimpan di folder salah (mis. di `ml/app`) | Pindahkan ke `ml/tests/` |
 | `status_hitung` = `error` | Galat saat melatih | Baca `pesan_hitung` dan `docker compose logs ml`, lalu `POST /api/retrain` |

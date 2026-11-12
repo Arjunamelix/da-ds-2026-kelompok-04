@@ -54,7 +54,7 @@ services:
     environment:
       BACKEND_URL: http://backend:8080
       DATA_DIR: /data
-      SCRIPTS_DIR: /app/scripts
+      SCRIPTS_DIR: /app/etl
       TZ: Asia/Jakarta
       SCRAPER_AKTIF: ${SCRAPER_AKTIF:-1}
       SCRAPER_JADWAL: ${SCRAPER_JADWAL:-10:00,16:00}
@@ -62,7 +62,7 @@ services:
       SCRAPER_TULIS_MASTER: ${SCRAPER_TULIS_MASTER:-1}
     volumes:
       - ./data:/data
-      - ./scripts:/app/scripts:ro
+      - ./etl:/app/etl:ro
     depends_on:
       - backend
     restart: unless-stopped

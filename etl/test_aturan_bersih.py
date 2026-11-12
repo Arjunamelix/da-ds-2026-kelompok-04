@@ -1,4 +1,4 @@
-"""Tes scripts/aturan_bersih.py.  Jalankan:  python -m pytest scripts/test_aturan_bersih.py -q"""
+"""Tes etl/aturan_bersih.py.  Jalankan:  python -m pytest etl/test_aturan_bersih.py -q"""
 import sys
 from pathlib import Path
 

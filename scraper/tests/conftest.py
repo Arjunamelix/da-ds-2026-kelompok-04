@@ -7,7 +7,7 @@ import pytest
 
 AKAR = Path(__file__).resolve().parents[2]                  # folder induk repo
 sys.path.insert(0, str(AKAR / "scraper"))
-os.environ.setdefault("SCRIPTS_DIR", str(AKAR / "scripts"))
+os.environ.setdefault("SCRIPTS_DIR", str(AKAR / "etl"))
 os.environ.setdefault("SCRAPER_AKTIF", "0")
 
 REF = json.loads((AKAR / "config" / "referensi.json").read_text(encoding="utf-8"))

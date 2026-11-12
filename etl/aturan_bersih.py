@@ -1,7 +1,7 @@
 """Aturan pembersihan dan penggabungan data harga (dipakai bersama).
 
 Dipakai oleh:
-  - scripts/etl_master.py      (manual: master_data_harian.csv -> data/processed/)
+  - etl/etl_master.py      (manual: master_data_harian.csv -> data/processed/)
   - pengumpul data otomatis    (tarikan terjadwal dari SIMPANG dan SP2KP)
 
 Dengan satu modul, data historis dan data baru dibersihkan dengan aturan yang persis sama.
