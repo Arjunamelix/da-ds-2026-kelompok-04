@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-AKAR = Path(__file__).resolve().parents[2]                  # folder induk repo
-sys.path.insert(0, str(AKAR / "scraper"))
+AKAR = Path(__file__).resolve().parents[3]                  # folder induk repo
+sys.path.insert(0, str(AKAR / "app" / "scraper"))
 os.environ.setdefault("SCRIPTS_DIR", str(AKAR / "etl"))
 os.environ.setdefault("SCRAPER_AKTIF", "0")
 

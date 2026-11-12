@@ -1,6 +1,6 @@
 # Data warehouse (skema bintang)
 
-Dibuat oleh migrasi `backend/migrations/000003_warehouse.up.sql`, yang berjalan otomatis saat backend menyala.
+Dibuat oleh migrasi `app/backend/migrations/000003_warehouse.up.sql`, yang berjalan otomatis saat backend menyala.
 Tabel `harga`, view `harga_agregat`, dan seluruh API yang sudah ada **tidak berubah**; warehouse adalah lapisan
 analitik di atasnya untuk dashboard visual lanjutan, EDA, dan pemodelan.
 
@@ -120,7 +120,7 @@ SELECT muat_warehouse();
 ```
 
 Tanggal hari besar di `ref_hari_besar` (Tahun Baru, Imlek, Awal Ramadan, Idulfitri, Iduladha, Natal 2024–2026) perlu
-dicocokkan dengan `ml/app/kalender.py` dan SKB 3 Menteri.
+dicocokkan dengan `app/ml/app/kalender.py` dan SKB 3 Menteri.
 
 ## Tampilan datar `v_dataset_harga`
 

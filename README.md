@@ -97,7 +97,7 @@ Status mengikuti komponen penilaian di panduan dosen (*Deskripsi Proyek Data Ana
 | Komponen | Isi | Status |
 |---|---|---|
 | S1 Problem framing | `docs/model/S1_problem_framing.md` | Selesai |
-| S2 Preprocessing dan fitur | `docs/model/S2_feature_engineering.md`, `ml/app/fitur_global.py` | Selesai |
+| S2 Preprocessing dan fitur | `docs/model/S2_feature_engineering.md`, `app/ml/app/fitur_global.py` | Selesai |
 | S3 Pemodelan dan tuning | `docs/model/S3_pemodelan.md`, `s3_tuning.csv`, `s3_terpilih.json` | Selesai |
 | S4 Evaluasi dan validasi | `docs/model/S4_evaluasi.md`, `s4_hasil_uji.csv`, `s4_keputusan.json` | Selesai |
 | S5 Error analysis | Daftar kasus sudah ada (bagian 12) | **Berikutnya** |
@@ -123,13 +123,13 @@ Status mengikuti komponen penilaian di panduan dosen (*Deskripsi Proyek Data Ana
 | 22 Okt | Data awal | Data SIMPANG (5 komoditas) masuk sebagai sumber |
 | 2 Nov | Data gabungan | `master_data_harian.csv` gabungan SIMPANG 12 komoditas + SP2KP 2 komoditas; `etl_master.py`, `aturan_bersih.py` |
 | s.d. 2 Nov | Aplikasi inti | 5 layanan Docker, warehouse skema bintang, 7 halaman dashboard, 17 visual, model lama per deret |
-| awal Nov | P3 Scraper | Layanan `scraper/` (jadwal, rentang, tahan < 15 pasar, tanpa duplikat, riwayat), 34 tes lulus |
-| awal Nov | P4 Backend | Proxy `/api/scraper/status` dan `/api/scraper/jalankan` (`backend/internal/handler/scraper.go`), `SCRAPER_URL` |
+| awal Nov | P3 Scraper | Layanan `app/scraper/` (jadwal, rentang, tahan < 15 pasar, tanpa duplikat, riwayat), 34 tes lulus |
+| awal Nov | P4 Backend | Proxy `/api/scraper/status` dan `/api/scraper/jalankan` (`app/backend/internal/handler/scraper.go`), `SCRAPER_URL` |
 | awal Nov | P5 Frontend | Chip pengambilan data di header, tab Pengambilan otomatis di Kelola Data |
 | awal Nov | P6 Compose | Layanan scraper di `docker-compose.yml`, `.env.example`, README; data otomatis masuk sampai 3 Nov |
 | awal Nov | S1 | Problem framing dikunci (`docs/model/S1_problem_framing.md`) |
-| awal Nov | S2 | `ml/app/fitur_global.py` + tes, 13 fitur terpilih |
-| awal Nov | S3 | `ml/app/model_global.py`, `validasi_global.py`, tuning Optuna, LightGBM per kelompok terpilih; 31 tes ML lulus |
+| awal Nov | S2 | `app/ml/app/fitur_global.py` + tes, 13 fitur terpilih |
+| awal Nov | S3 | `app/ml/app/model_global.py`, `validasi_global.py`, tuning Optuna, LightGBM per kelompok terpilih; 31 tes ML lulus |
 | s.d. 9 Nov | S4 | Evaluasi di data uji, `s4_hasil_uji.csv`, `s4_keputusan.json`; 32 tes ML lulus; `pemodelan_lama.ipynb` dihapus |
 | 10 Nov | Cek database | Hasil scraping terbukti masuk PostgreSQL tanpa duplikat; rencana database bersama (Neon) dibahas, belum diputuskan |
 | 11 Nov | Restrukturisasi | Handler backend dipecah per fitur, header JSDoc halaman, `BACKEND_HOST_PORT` (bagian 9.8); README diperbarui |
@@ -325,7 +325,7 @@ Elemen yang ada di semua halaman:
 
 ### 5.3 Empat KPI di Dashboard
 
-Dihitung dari data warehouse, fungsi `anKPI` di `backend/internal/handler/analitik_wh.go`.
+Dihitung dari data warehouse, fungsi `anKPI` di `app/backend/internal/handler/analitik_wh.go`.
 
 | KPI | Cara hitung | Pembanding |
 |---|---|---|
@@ -447,7 +447,7 @@ Data sintetis (`python etl/gen_data_dev.py`) hanya untuk menguji aplikasi dan **
 
   ```powershell
   pip install fastapi "uvicorn[standard]" requests tzdata pandas
-  $env:PYTHONPATH="scraper"; $env:BACKEND_URL="http://localhost:8080"; $env:SCRIPTS_DIR="scripts"; $env:DATA_DIR="data"
+  $env:PYTHONPATH="app/scraper"; $env:BACKEND_URL="http://localhost:8080"; $env:SCRIPTS_DIR="scripts"; $env:DATA_DIR="data"
   python -m app.cli --dry-run     # ambil dan bersihkan saja, tidak mengubah apa pun
   python -m app.cli               # tarikan penuh
   ```
@@ -464,13 +464,13 @@ Ada dua hal yang perlu dibedakan:
 
 | Bagian | Cara kerja | Berkas |
 |---|---|---|
-| Deret | Satu deret = satu komoditas di satu wilayah (Kota Medan atau kecamatan) dari satu sumber. Sekitar 171 deret; deret dengan data asli kurang dari `ML_MIN_HARI` dilewati | `ml/app/pipeline.py` |
-| Fitur | Perubahan harga 1, 3, 7, 14, 28 hari; rasio terhadap rata-rata 30 dan 90 hari; volatilitas 14 hari; hari besar dan bulan tanggal target | `ml/app/fitur.py`, `kalender.py` |
+| Deret | Satu deret = satu komoditas di satu wilayah (Kota Medan atau kecamatan) dari satu sumber. Sekitar 171 deret; deret dengan data asli kurang dari `ML_MIN_HARI` dilewati | `app/ml/app/pipeline.py` |
+| Fitur | Perubahan harga 1, 3, 7, 14, 28 hari; rasio terhadap rata-rata 30 dan 90 hari; volatilitas 14 hari; hari besar dan bulan tanggal target | `app/ml/app/fitur.py`, `kalender.py` |
 | Target | y = ln(harga h hari lagi) − ln(harga hari ini), h = 7 dan 14; dikembalikan ke rupiah | `fitur.py` |
-| Model | `GradientBoostingRegressor` **satu per deret** (120 pohon, kedalaman 3); baseline naif = harga hari ini | `ml/app/model.py` |
-| Evaluasi | Walk-forward pada hari uji terakhir; MAE, RMSE, MAPE dibanding baseline | `ml/app/evaluasi.py` |
+| Model | `GradientBoostingRegressor` **satu per deret** (120 pohon, kedalaman 3); baseline naif = harga hari ini | `app/ml/app/model.py` |
+| Evaluasi | Walk-forward pada hari uji terakhir; MAE, RMSE, MAPE dibanding baseline | `app/ml/app/evaluasi.py` |
 | Rentang 80% | Persentil 10 dan 90 galat uji walk-forward | `pipeline.py` |
-| Status | Ambang per komoditas dari kenaikan 7 hari historis: Waspada = persentil 80 (minimal 2%), Lonjakan = persentil 95. Hanya dari kenaikan yang **diprediksi** | `ml/app/status.py` |
+| Status | Ambang per komoditas dari kenaikan 7 hari historis: Waspada = persentil 80 (minimal 2%), Lonjakan = persentil 95. Hanya dari kenaikan yang **diprediksi** | `app/ml/app/status.py` |
 
 Hasilnya lemah. Model lama hanya mengalahkan baseline naif di **7 dari 171 deret** (temuan 5 halaman Cerita), dan di data uji S4 secara keseluruhan **19,8% lebih buruk** dari naif. Karena itu pemodelan diulang.
 
@@ -490,13 +490,13 @@ Kode dan grafik ada di `notebooks/pemodelan.ipynb`, ringkasan per tahap di `docs
 - Baseline: naif "harga tetap". Baseline wajib panduan: Linear Regression.
 - Kriteria sukses, aturan status S1.7 (status = yang lebih tinggi dari kelas perubahan aktual 7 hari terakhir dan kelas prediksi), dan **aturan cadangan** ("bila kriteria minimum tidak tercapai pada satu kelompok, aplikasi memakai baseline naif untuk kelompok itu") ditetapkan **sebelum** data uji dibuka.
 
-**S2 Preprocessing dan fitur** (`S2_feature_engineering.md`, `ml/app/fitur_global.py`)
+**S2 Preprocessing dan fitur** (`S2_feature_engineering.md`, `app/ml/app/fitur_global.py`)
 - 25 fitur kandidat dalam 5 kelompok.
 - Ablation dan permutation importance menyisakan **13 fitur** (`FITUR_TERPILIH`): `komoditas_kode, bergejolak, tingkat_kota, ret_3, ret_14, rasio_ma30, rasio_ma365, frac_berubah_28, hari_sejak_berubah, n_pasar, dispersi, selisih_kota, ret_7_kota`.
 - Fitur pasar dan wilayah paling penting. Fitur kalender dikeluarkan karena tidak membantu.
 - Tes kebocoran lulus.
 
-**S3 Pemodelan dan tuning** (`S3_pemodelan.md`, `ml/app/model_global.py`, `validasi_global.py`)
+**S3 Pemodelan dan tuning** (`S3_pemodelan.md`, `app/ml/app/model_global.py`, `validasi_global.py`)
 - Algoritma: Linear Regression, Ridge, Random Forest, HistGradientBoosting, LightGBM.
 - Tuning: Optuna (TPE, seed 42), 210 percobaan, validasi silang 4 lipatan waktu (Jul–Sep 2025, Okt–Des 2025, Jan–Mar 2026, Apr–Jun 2026). Semua percobaan di `s3_tuning.csv`.
 - Strategi untuk komoditas stabil yang diuji: per kelompok, penyusutan prediksi kecil ke 0, naif untuk stabil.
@@ -586,10 +586,10 @@ Lima layanan aplikasi (`frontend`, `backend`, `ml`, `scraper`, `db`) dijalankan 
 
 | Folder | Isi | Dipakai oleh |
 |---|---|---|
-| `frontend/` | Dashboard web (React + Vite, disajikan nginx) | layanan `frontend` |
-| `backend/` | API, validasi, impor/ekspor CSV, data warehouse, pemicu pelatihan ulang (Go) | layanan `backend` |
-| `ml/` | Pelatihan model, prediksi, status harga (Python FastAPI) | layanan `ml` |
-| `scraper/` | Pengambilan data harga otomatis dari SIMPANG (Python FastAPI) | layanan `scraper` |
+| `app/frontend/` | Dashboard web (React + Vite, disajikan nginx) | layanan `frontend` |
+| `app/backend/` | API, validasi, impor/ekspor CSV, data warehouse, pemicu pelatihan ulang (Go) | layanan `backend` |
+| `app/ml/` | Pelatihan model, prediksi, status harga (Python FastAPI) | layanan `ml` |
+| `app/scraper/` | Pengambilan data harga otomatis dari SIMPANG (Python FastAPI) | layanan `scraper` |
 | `config/` | Referensi kecamatan, pasar, komoditas, dan batas harga | `backend`, `ml`, `scripts` |
 | `data/` | Data mentah, data bersih hasil ETL, data uji | `scripts`, `notebooks` |
 | `etl/` | Skrip olah data yang dijalankan manual, dan aturan pembersihan bersama | pengguna, `scraper` |
@@ -601,9 +601,9 @@ Padanan dengan struktur yang diminta panduan (bagian 6), tanpa mengubah folder:
 | Diminta panduan | Padanan di repo |
 |---|---|
 | `data/` | `data/` |
-| `etl/` | `etl/` (`etl_master.py`, `aturan_bersih.py`, `impor_csv.py`) dan `backend/migrations/000003_warehouse.up.sql` |
+| `etl/` | `etl/` (`etl_master.py`, `aturan_bersih.py`, `impor_csv.py`) dan `app/backend/migrations/000003_warehouse.up.sql` |
 | `notebooks/` | `notebooks/pemodelan.ipynb` |
-| `app/` | `frontend/`, `backend/`, `ml/`, `scraper/` |
+| `app/` | `app/frontend/`, `app/backend/`, `app/ml/`, `app/scraper/` |
 | `models/` | **Belum ada**; dibuat di S6 untuk berkas model joblib |
 
 ### 9.1 Berkas di folder induk
@@ -619,10 +619,10 @@ Dasi_Dalis_04/
 └── Makefile                pintasan perintah (macOS/Linux)
 ```
 
-### 9.2 `frontend/` (dashboard)
+### 9.2 `app/frontend/` (dashboard)
 
 ```
-frontend/
+app/frontend/
 ├── Dockerfile              build React lalu sajikan dengan nginx
 ├── nginx.conf              pengaturan nginx (rute halaman dan penerusan /api ke backend)
 ├── .dockerignore           berkas yang tidak ikut ke image Docker (node_modules, dist)
@@ -669,10 +669,10 @@ frontend/
         └── halaman.test.jsx   tes halaman
 ```
 
-### 9.3 `backend/` (API Go)
+### 9.3 `app/backend/` (API Go)
 
 ```
-backend/
+app/backend/
 ├── Dockerfile              build biner Go
 ├── go.mod                  modul dan daftar dependensi Go
 ├── go.sum                  checksum dependensi
@@ -714,10 +714,10 @@ backend/
     └── 000003_warehouse.down.sql
 ```
 
-### 9.4 `ml/` (layanan model)
+### 9.4 `app/ml/` (layanan model)
 
 ```
-ml/
+app/ml/
 ├── Dockerfile              image Python untuk layanan ML
 ├── requirements.txt        paket Python
 ├── app/
@@ -742,10 +742,10 @@ ml/
     └── test_pipeline_api.py
 ```
 
-### 9.5 `scraper/` (layanan pengambil data)
+### 9.5 `app/scraper/` (layanan pengambil data)
 
 ```
-scraper/
+app/scraper/
 ├── Dockerfile              image Python untuk layanan scraper
 ├── .dockerignore           berkas yang tidak ikut ke image Docker (tests, cache)
 ├── requirements.txt        paket Python
@@ -827,9 +827,9 @@ Untuk meningkatkan kemudahan navigasi, kejelasan kode, dan keterbacaan proyek ba
 | Komponen | Sebelum Pembaruan (Before) | Sesudah Pembaruan (After) | Alasan & Manfaat |
 |---|---|---|---|
 | **Backend Handler** | Semua rute dan handler API (`/harga`, `/ringkasan`, `/tren`, `/perbandingan`, `/prediksi`, `/status`, `/retrain`) menumpuk di **satu file tunggal** `handler.go` (404 baris). | Dipecah menjadi berkas modular per fitur: `harga.go`, `ringkasan.go`, `tren.go`, `perbandingan.go`, `prediksi.go`, dan `handler.go` (khusus routing). | Saat ingin mengubah logika fitur tertentu (misal: tren), anggota tim langsung menuju `tren.go` tanpa perlu scroll file panjang. Semuanya tetap di `package handler` sehingga bebas error import. |
-| **Dokumentasi Frontend** | File halaman di `frontend/src/pages/` langsung dimulai dengan kode tanpa keterangan tujuan halaman. | Setiap file halaman (`Dashboard.jsx`, `Tren.jsx`, `Perbandingan.jsx`, `Prediksi.jsx`, `KelolaData.jsx`, `Analisis.jsx`, `Cerita.jsx`) dilengkapi header JSDoc standar. | Anggota tim langsung paham fungsi halaman, komponen UI yang dipakai, dan endpoint API backend yang dihubungi saat membuka file. |
+| **Dokumentasi Frontend** | File halaman di `app/frontend/src/pages/` langsung dimulai dengan kode tanpa keterangan tujuan halaman. | Setiap file halaman (`Dashboard.jsx`, `Tren.jsx`, `Perbandingan.jsx`, `Prediksi.jsx`, `KelolaData.jsx`, `Analisis.jsx`, `Cerita.jsx`) dilengkapi header JSDoc standar. | Anggota tim langsung paham fungsi halaman, komponen UI yang dipakai, dan endpoint API backend yang dihubungi saat membuka file. |
 | **Dokumentasi Redundan** | Ada file `docs/PANDUAN_SETUP.md` (isinya duplikat `README.md`), serta `docs/alur_data_dev.md` & `docs/hasil_cek_sumber.md` (catatan hari pertama yang sudah usang). | File redundan dihapus; seluruh panduan setup dipusatkan di `README.md`, dan kualitas data dipusatkan di `docs/kualitas_data.md`. | Mengurangi kebingungan panduan mana yang harus diikuti (*single source of truth*). |
-| **Kebersihan Git & Cache** | Folder build `frontend/dist/` dan cache `ml/.pytest_cache/` sempat tertinggal di lokal. | Dibersihkan dari disk lokal dan ditambahkan ke `.gitignore`. | Menghindari commit berkas sampah build yang bisa memperberat ukuran repositori. |
+| **Kebersihan Git & Cache** | Folder build `app/frontend/dist/` dan cache `app/ml/.pytest_cache/` sempat tertinggal di lokal. | Dibersihkan dari disk lokal dan ditambahkan ke `.gitignore`. | Menghindari commit berkas sampah build yang bisa memperberat ukuran repositori. |
 | **Fleksibilitas Port Backend** | Port backend di `docker-compose.yml` terkunci di `127.0.0.1:8080:8080`. | Menggunakan `127.0.0.1:${BACKEND_HOST_PORT:-8080}:8080`. | Anggota tim bawaan tetap memakai port `8080`, namun bagi anggota tim yang memiliki konflik port lokal (misalnya servis bawaan laptop di 8080) dapat mengatur `BACKEND_HOST_PORT` di `.env` tanpa mengubah git. |
 
 ---
@@ -840,17 +840,17 @@ Tes **tidak** berjalan di Docker; butuh alat masing-masing di laptop.
 
 | Bagian | Syarat | Perintah | Hasil yang benar |
 |---|---|---|---|
-| Frontend | Node.js 20+ | `cd frontend && npm install && npm test` | semua lulus |
-| ML | Python 3.10+ | `cd ml`, buat dan aktifkan venv, `pip install -r requirements.txt`, `pytest` | **32 lulus** (tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
-| Backend | Go 1.25+ | `cd backend && go mod tidy && go vet ./... && go test ./...` | semua lulus |
-| Scraper | Python 3.10+ | dari folder induk: `pip install -r scraper/requirements.txt`, lalu `python -m pytest scraper/tests -q` | **34 lulus** |
+| Frontend | Node.js 20+ | `cd app/frontend && npm install && npm test` | semua lulus |
+| ML | Python 3.10+ | `cd app/ml`, buat dan aktifkan venv, `pip install -r requirements.txt`, `pytest` | **32 lulus** (tes LightGBM dilewati bila paket `lightgbm` belum dipasang) |
+| Backend | Go 1.25+ | `cd app/backend && go mod tidy && go vet ./... && go test ./...` | semua lulus |
+| Scraper | Python 3.10+ | dari folder induk: `pip install -r app/scraper/requirements.txt`, lalu `python -m pytest app/scraper/tests -q` | **34 lulus** |
 | Aturan bersih | Python 3.10+ | dari folder induk: `python -m pytest etl/test_aturan_bersih.py -q` | **9 lulus** |
 
 Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv/bin/activate`.
 
 **Notebook** `notebooks/pemodelan.ipynb`:
 - memakai venv ML yang sama ditambah `pip install matplotlib ipykernel lightgbm optuna`;
-- buka di VS Code, pilih kernel `ml\.venv`, lalu **Run All** (sekitar 10–15 menit);
+- buka di VS Code, pilih kernel `app\ml\.venv`, lalu **Run All** (sekitar 10–15 menit);
 - tuning S3 tidak dijalankan ulang (hasilnya dibaca dari `docs/model/s3_tuning.csv`) kecuali `JALANKAN_TUNING = True`, yang menambah sekitar 30–40 menit.
 
 ---
@@ -867,11 +867,11 @@ Aktivasi venv: Windows `.\.venv\Scripts\Activate.ps1`; macOS/Linux `source .venv
 | Master CSV bertambah, database "baris baru 0" | Baris harga 0 (pasar belum mengunggah) | Normal; tarikan berikutnya mengisinya |
 | Peringatan git "LF will be replaced by CRLF" pada master CSV | Scraper (Linux) menulis LF, git di Windows memakai CRLF | Tidak merusak data. Tambahkan `.gitattributes` berisi `*.csv text eol=lf` |
 | `git pull` bentrok di master CSV | Lebih dari satu laptop menulis master | Hanya satu laptop `SCRAPER_TULIS_MASTER=1` |
-| Pylance: import `aturan_bersih` atau `app` tidak dikenali | VS Code tidak tahu folder `etl/` dan `ml/` | `.vscode/settings.json` berisi `"python.analysis.extraPaths": ["scripts", "ml"]`, lalu Reload Window |
+| Pylance: import `aturan_bersih` atau `app` tidak dikenali | VS Code tidak tahu folder `etl/` dan `app/ml/` | `.vscode/settings.json` berisi `"python.analysis.extraPaths": ["scripts", "ml"]`, lalu Reload Window |
 | pytest: `import file mismatch` | Sisa cache dari berkas yang dipindah | Hapus `__pycache__` dan `.pytest_cache` |
-| Jumlah tes lulus kurang / tes tidak ditemukan | Berkas tes tersimpan di folder salah (mis. di `ml/app`) | Pindahkan ke `ml/tests/` |
+| Jumlah tes lulus kurang / tes tidak ditemukan | Berkas tes tersimpan di folder salah (mis. di `app/ml/app`) | Pindahkan ke `app/ml/tests/` |
 | `status_hitung` = `error` | Galat saat melatih | Baca `pesan_hitung` dan `docker compose logs ml`, lalu `POST /api/retrain` |
-| Peta Tren tidak tampil | API key Google Maps atau koneksi ke Google | Cek koneksi; key ada di `frontend/src/components/PetaMedan.jsx` (lihat bagian 12) |
+| Peta Tren tidak tampil | API key Google Maps atau koneksi ke Google | Cek koneksi; key ada di `app/frontend/src/components/PetaMedan.jsx` (lihat bagian 12) |
 | Berkas `.ipynb` / `.jsx` gagal dipratinjau saat dikirim lewat chat | Batasan pratinjau | Unduh berkasnya, atau minta salinan `.txt` |
 
 ---
@@ -895,9 +895,9 @@ Urutan yang disarankan (paling berpengaruh ke nilai lebih dulu). Penanda R1–R7
   - status = aturan S1.7;
   - rentang 80%.
 - Simpan model dengan **joblib** di folder `models/` (syarat panduan).
-- Tambah `lightgbm` ke `ml/requirements.txt`, dan pasang `libgomp1` di `ml/Dockerfile`.
+- Tambah `lightgbm` ke `app/ml/requirements.txt`, dan pasang `libgomp1` di `app/ml/Dockerfile`.
 - Halaman Prediksi menampilkan **perbandingan beberapa model**, grafik **aktual vs prediksi**, dan **residual** (syarat modul modelling di panduan bagian 2).
-- **Perbaiki panel sebelum–sesudah** di Kelola Data. Sekarang panel mencari prediksi deret **pasar**, padahal model hanya untuk kecamatan dan Kota Medan, sehingga selalu tampil "belum ada". Panel seharusnya menampilkan deret kecamatan pasar itu dan Kota Medan (`backend/internal/service/service.go`, fungsi `Tambah` dan `kunciInput`).
+- **Perbaiki panel sebelum–sesudah** di Kelola Data. Sekarang panel mencari prediksi deret **pasar**, padahal model hanya untuk kecamatan dan Kota Medan, sehingga selalu tampil "belum ada". Panel seharusnya menampilkan deret kecamatan pasar itu dan Kota Medan (`app/backend/internal/service/service.go`, fungsi `Tambah` dan `kunciInput`).
 - Perbarui temuan 5 di halaman Cerita dan evaluasi di halaman Prediksi agar memakai model baru.
 - Pertimbangkan rentang 80% komoditas stabil: hasilnya sangat sempit (mis. jagung Rp8.974–Rp8.976) karena sebagian besar galat nol.
 

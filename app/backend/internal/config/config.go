@@ -40,7 +40,7 @@ func Load() Config {
 		DatabaseURL:   env("DATABASE_URL", "postgres://pangan:pangan@localhost:5432/harga_pangan?sslmode=disable"),
 		MLURL:         strings.TrimRight(env("ML_URL", "http://localhost:8000"), "/"),
 		ScraperURL:    strings.TrimRight(env("SCRAPER_URL", "http://localhost:8001"), "/"),
-		ReferensiPath: env("REFERENSI_PATH", "../config/referensi.json"),
+		ReferensiPath: env("REFERENSI_PATH", "../../config/referensi.json"),
 		AppEnv:        env("APP_ENV", "dev"),
 		CORSOrigins:   origins,
 		MaxUploadMB:   64,

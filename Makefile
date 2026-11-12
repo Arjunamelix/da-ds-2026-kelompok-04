@@ -34,10 +34,10 @@ psql:
 test: test-go test-ml test-front
 
 test-go:
-	cd backend && go test ./...
+	cd app/backend && go test ./...
 
 test-ml:
-	cd ml && python3 -m pytest -q
+	cd app/ml && python3 -m pytest -q
 
 test-front:
-	cd frontend && npm test
+	cd app/frontend && npm test

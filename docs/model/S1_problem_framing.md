@@ -129,7 +129,7 @@ kelompok itu (diputuskan di S5).
 - Ambang status dihitung dari data latih saja (memperbaiki kebocoran).
 - Model gabungan menggantikan model per deret.
 - Penyebab rentang prediksi 80% janggal (`lo = min(..., pred)` dan `hi = max(..., pred)` di `pipeline.py`) diperbaiki di S4.
-- Tanggal awal Ramadan 2024 di `ml/app/kalender.py` dikoreksi ke ketetapan pemerintah (bagian 9).
+- Tanggal awal Ramadan 2024 di `app/ml/app/kalender.py` dikoreksi ke ketetapan pemerintah (bagian 9).
 
 ## 9. Keputusan tambahan yang disepakati
 

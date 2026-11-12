@@ -1,7 +1,7 @@
 # S2 · Preprocessing dan feature engineering
 
 Bagian dari R3 (pemodelan ulang). Kode, tabel lengkap, dan grafik ada di `notebooks/pemodelan.ipynb` bagian S2.
-Fungsi fitur ada di `ml/app/fitur_global.py` (dipakai juga oleh aplikasi di S6), dengan tes di `ml/tests/test_fitur_global.py`.
+Fungsi fitur ada di `app/ml/app/fitur_global.py` (dipakai juga oleh aplikasi di S6), dengan tes di `app/ml/tests/test_fitur_global.py`.
 Semua angka hanya memakai data latih dan validasi (hari target sampai 30 Juni 2026). Data uji belum disentuh.
 
 ## 1. Alur preprocessing

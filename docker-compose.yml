@@ -20,7 +20,7 @@ services:
       retries: 12
 
   backend:
-    build: ./backend
+    build: ./app/backend
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-pangan}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-harga_pangan}?sslmode=disable
       ML_URL: http://ml:8000
@@ -38,7 +38,7 @@ services:
       - "127.0.0.1:${BACKEND_HOST_PORT:-8080}:8080"
 
   ml:
-    build: ./ml
+    build: ./app/ml
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-pangan}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-harga_pangan}?sslmode=disable
       ML_MIN_HARI: ${ML_MIN_HARI:-90}
@@ -50,7 +50,7 @@ services:
   # Menambah data baru ke data/raw/master_data_harian.csv dan ke database (lewat backend), tanpa duplikat.
   # Tidak dibuka ke luar Docker; dashboard memakainya lewat backend (/api/scraper/...).
   scraper:
-    build: ./scraper
+    build: ./app/scraper
     environment:
       BACKEND_URL: http://backend:8080
       DATA_DIR: /data
@@ -68,7 +68,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    build: ./app/frontend
     depends_on:
       - backend
     ports:

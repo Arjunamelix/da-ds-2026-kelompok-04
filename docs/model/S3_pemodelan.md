@@ -1,7 +1,7 @@
 # S3 · Pemodelan: ≥ 3 algoritma dan tuning
 
 Bagian dari R3 (pemodelan ulang). Kode, tabel lengkap, dan grafik ada di `notebooks/pemodelan.ipynb` bagian S3.
-Pembangun model ada di `ml/app/model_global.py` dan validasi silang di `ml/app/validasi_global.py` (tes: `ml/tests/test_model_global.py`).
+Pembangun model ada di `app/ml/app/model_global.py` dan validasi silang di `app/ml/app/validasi_global.py` (tes: `app/ml/tests/test_model_global.py`).
 Semua angka berasal dari validasi silang 4 lipatan waktu (Jul 2025 – Jun 2026) dengan fitur final S2 (13 fitur). Data uji belum disentuh.
 
 ## 1. Algoritma

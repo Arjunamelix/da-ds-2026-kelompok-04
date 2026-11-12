@@ -1,7 +1,7 @@
 # Visualisasi dan interaktivitas dashboard
 
 Pemetaan visual di aplikasi terhadap syarat panduan proyek (4.2 Visualisasi Advance). Visual baru membaca
-data warehouse (`docs/warehouse.md`) lewat endpoint `/api/analitik/*` (`backend/internal/handler/analitik_wh.go`).
+data warehouse (`docs/warehouse.md`) lewat endpoint `/api/analitik/*` (`app/backend/internal/handler/analitik_wh.go`).
 
 ## Daftar visual (16; syarat minimal 10)
 
@@ -51,7 +51,7 @@ Lima temuan; judul tiap grafik berupa temuannya sendiri dan **dihitung dari data
 bertambah. Setiap temuan diberi artinya bagi konsumen, pedagang, dan pemerintah.
 
 Aturan yang dipakai saat memilih angka untuk judul:
-- Komoditas dengan catatan kualitas data (`CATATAN_DATA` di `frontend/src/components/viz/util.js`: jagung dan kedelai,
+- Komoditas dengan catatan kualitas data (`CATATAN_DATA` di `app/frontend/src/components/viz/util.js`: jagung dan kedelai,
   yang selisih antarpasarnya konsisten per pasar sehingga kemungkinan jenisnya berbeda) tetap tampil di grafik dengan
   warna abu, tetapi tidak dipakai untuk judul.
 - Pasar dengan data terbatas (kurang dari 5 komoditas, atau kurang dari separuh jumlah laporan pasar pada umumnya,
